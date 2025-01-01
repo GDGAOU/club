@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,7 +18,7 @@ export async function DELETE(
     }
 
     const discount = await prisma.discount.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: { user: true },
     });
 
@@ -38,7 +38,7 @@ export async function DELETE(
     }
 
     await prisma.discount.delete({
-      where: { id: params.id },
+      where: { id: context.params.id },
     });
 
     return NextResponse.json({ success: true });
@@ -53,7 +53,7 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -68,7 +68,7 @@ export async function PATCH(
     const body = await request.json();
 
     const discount = await prisma.discount.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: { user: true },
     });
 
@@ -88,7 +88,7 @@ export async function PATCH(
     }
 
     const updatedDiscount = await prisma.discount.update({
-      where: { id: params.id },
+      where: { id: context.params.id },
       data: {
         title: body.title,
         description: body.description,
