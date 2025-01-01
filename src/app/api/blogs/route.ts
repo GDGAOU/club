@@ -1,9 +1,9 @@
-import { getServerSession } from "next-auth"
-import { NextResponse } from "next/server"
-import * as z from "zod"
-
-import { authOptions } from "@/lib/auth"
+import { NextResponse } from 'next/server';
+import type { RouteHandler } from '@/types/api';
 import { db } from "@/lib/db"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+import * as z from "zod"
 
 const blogSchema = z.object({
   title: z.string().min(1),
@@ -23,7 +23,7 @@ const blogSchema = z.object({
   ),
 })
 
-export async function POST(req: Request) {
+export const POST: RouteHandler = async (request) => {
   try {
     const session = await getServerSession(authOptions)
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const json = await req.json()
+    const json = await request.json()
     const body = blogSchema.parse(json)
 
     // Set status to pending if user is trying to publish
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET(req: Request) {
+export const GET: RouteHandler = async (request) => {
   try {
     const session = await getServerSession(authOptions)
 
@@ -77,7 +77,7 @@ export async function GET(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const { searchParams } = new URL(req.url)
+    const { searchParams } = new URL(request.url)
     const status = searchParams.get("status")
     
     try {
@@ -101,7 +101,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function PATCH(req: Request) {
+export const PATCH: RouteHandler = async (request) => {
   try {
     const session = await getServerSession(authOptions)
 
@@ -109,7 +109,7 @@ export async function PATCH(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const json = await req.json()
+    const json = await request.json()
     const { id, ...updateData } = json
 
     if (!id) {
@@ -167,7 +167,7 @@ export async function PATCH(req: Request) {
   }
 }
 
-export async function DELETE(req: Request) {
+export const DELETE: RouteHandler = async (request) => {
   try {
     const session = await getServerSession(authOptions)
 
@@ -175,7 +175,7 @@ export async function DELETE(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
-    const { searchParams } = new URL(req.url)
+    const { searchParams } = new URL(request.url)
     const id = searchParams.get("id")
 
     if (!id) {

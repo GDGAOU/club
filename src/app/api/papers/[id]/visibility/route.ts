@@ -1,12 +1,10 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { NextResponse } from 'next/server';
+import type { RouteHandler } from '@/types/api';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export const PATCH: RouteHandler = async (request, { params }: { params: { id: string } }) => {
   try {
     const id = params.id;
     if (!id) {

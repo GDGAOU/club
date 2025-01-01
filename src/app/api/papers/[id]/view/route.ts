@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { RouteHandler } from '@/types/api';
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -15,10 +16,10 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth });
 
-export async function GET(
+export const GET: RouteHandler = async (
   request: Request,
   { params }: { params: { id: string } }
-) {
+) => {
   const id = params.id;
   if (!id) {
     return new NextResponse("Paper ID is required", { status: 400 });

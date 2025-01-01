@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
+import { NextResponse } from 'next/server';
+import type { RouteHandler } from '@/types/api';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // Create notification
-export async function POST(request: NextRequest) {
+export const POST: RouteHandler = async (request) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Get user notifications
-export async function GET(request: NextRequest) {
+export const GET: RouteHandler = async (request) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Mark notifications as read
-export async function PATCH(request: NextRequest) {
+export const PATCH: RouteHandler = async (request) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {

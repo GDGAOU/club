@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { NextResponse } from 'next/server';
+import type { RouteHandler } from '@/types/api';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
 
 // Schema for discount validation
 const discountSchema = z.object({
@@ -22,7 +23,7 @@ const discountSchema = z.object({
   expiryDate: z.string(),
 });
 
-export async function POST(request: NextRequest) {
+export const POST: RouteHandler = async (request) => {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export const GET: RouteHandler = async (request) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
