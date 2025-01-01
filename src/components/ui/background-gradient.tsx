@@ -3,6 +3,24 @@
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 
+type MixBlendMode =
+  | "normal"
+  | "multiply"
+  | "screen"
+  | "overlay"
+  | "darken"
+  | "lighten"
+  | "color-dodge"
+  | "color-burn"
+  | "hard-light"
+  | "soft-light"
+  | "difference"
+  | "exclusion"
+  | "hue"
+  | "saturation"
+  | "color"
+  | "luminosity";
+
 interface BackgroundGradientProps extends React.HTMLAttributes<HTMLDivElement> {
   gradientBackgroundStart?: string;
   gradientBackgroundEnd?: string;
@@ -11,7 +29,7 @@ interface BackgroundGradientProps extends React.HTMLAttributes<HTMLDivElement> {
   thirdColor?: string;
   pointerColor?: string;
   size?: string;
-  blendingValue?: string;
+  blendingValue?: MixBlendMode;
   children?: React.ReactNode;
   interactive?: boolean;
   containerClassName?: string;
@@ -99,7 +117,7 @@ export const BackgroundGradient = ({
             isHovered ? "0.8" : "0.4"
           }) 0%, transparent 100%)
           `,
-          mixBlendMode: blendingValue as any,
+          mixBlendMode: blendingValue,
         }}
       />
     </div>

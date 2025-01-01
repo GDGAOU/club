@@ -100,10 +100,11 @@ interface CardBodyProps {
 export const CardBody = ({
   children,
   className,
-}: CardBodyProps) => {
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [mouseX, setMouseX] = useState(0.5);
-  const [mouseY, setMouseY] = useState(0.5);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
@@ -114,22 +115,16 @@ export const CardBody = ({
     const x = (clientX - left) / width;
     const y = (clientY - top) / height;
 
-    setMouseX(x);
-    setMouseY(y);
-  };
-
-  const handleMouseLeave = () => {
-    setMouseX(0.5);
-    setMouseY(0.5);
+    ref.current.style.setProperty("--x", `${x}`);
+    ref.current.style.setProperty("--y", `${y}`);
   };
 
   return (
     <div
       ref={ref}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
       className={cn(
-        "h-96 w-96 [transform-style:preserve-3d]  [&>*]:[transform-style:preserve-3d]",
+        "relative h-full w-full rounded-xl p-[2px] before:absolute before:inset-0 before:-z-10 before:rounded-xl before:bg-[radial-gradient(var(--x,_50%)_var(--y,_50%),circle,rgba(255,255,255,0.1)_0%,transparent_100%)] before:opacity-0 before:transition-opacity hover:before:opacity-100",
         className
       )}
     >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { 
   Card, 
@@ -191,7 +191,7 @@ export default function Papers() {
   };
 
   // Load papers on mount
-  const fetchPapers = async () => {
+  const fetchPapers = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await fetch("/api/papers");
@@ -211,7 +211,7 @@ export default function Papers() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchPapers();
@@ -234,8 +234,6 @@ export default function Papers() {
       });
 
       if (response.ok) {
-        const data = await response.json();
-        
         // Show success toast with loading spinner
         toast({
           title: (
