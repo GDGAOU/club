@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -16,14 +16,12 @@ const auth = new google.auth.GoogleAuth({
 const drive = google.drive({ version: 'v3', auth });
 
 export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = context.params;
-
     const paper = await prisma.paper.findUnique({
-      where: { id },
+      where: { id: params.id },
       include: { user: true },
     });
 
