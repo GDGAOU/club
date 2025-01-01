@@ -1,13 +1,11 @@
 'use client';
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   IconUsers,
   IconEye,
   IconHeart,
-  IconArticle,
-  IconCalendarEvent,
   IconTrophy,
   IconArrowUpRight,
   IconStars,
@@ -104,51 +102,12 @@ const scaleIn = {
   }
 };
 
-const slideIn = {
-  initial: {
-    x: -20,
-    opacity: 0
-  },
-  animate: {
-    x: 0,
-    opacity: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 10
-    }
-  }
-};
-
 const staggerContainer = {
   animate: {
     transition: {
       staggerChildren: 0.1
     }
   }
-};
-
-const pulseAnimation = {
-  initial: { scale: 1 },
-  animate: {
-    scale: [1, 1.02, 1],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      ease: "easeInOut"
-    }
-  }
-};
-
-const progressBarVariant = {
-  initial: { width: 0 },
-  animate: (width: number) => ({
-    width: `${width}%`,
-    transition: {
-      duration: 1,
-      ease: "easeOut"
-    }
-  })
 };
 
 export default function DashboardMain({ user, analytics }: DashboardProps) {
@@ -177,7 +136,7 @@ export default function DashboardMain({ user, analytics }: DashboardProps) {
                 Welcome back, {user.name}!
               </h2>
               <p className="text-neutral-500 dark:text-neutral-400 mt-2">
-                Here's what's happening with your GDSC community.
+                Here&apos;s what&apos;s happening with your GDSC community.
               </p>
             </div>
             <div className="flex items-center gap-4">

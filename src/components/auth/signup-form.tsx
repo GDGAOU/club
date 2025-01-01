@@ -1,23 +1,19 @@
 "use client";
 
+import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
-import { useTransition } from "react";
-import { signIn } from "next-auth/react";
 import { signupSchema } from "@/schemas/loginSchema";
 
 interface FormData {
+  name: string;
   email: string;
   password: string;
-  name: string;
 }
 
 export function SignUpForm() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const form = useForm<FormData>({
     resolver: zodResolver(signupSchema),
@@ -29,6 +25,7 @@ export function SignUpForm() {
   });
 
   const onSubmit = async (data: FormData) => {
+    setLoading(true);
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -54,6 +51,8 @@ export function SignUpForm() {
       } else {
         toast.error("Something went wrong");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,9 +116,9 @@ export function SignUpForm() {
 
       <p className="mt-4 text-center text-sm text-gray-400">
         Already have an account?{" "}
-        <Link href="/login" className="text-blue-400 hover:text-blue-300">
+        <a href="/login" className="text-blue-400 hover:text-blue-300">
           Sign in
-        </Link>
+        </a>
       </p>
     </div>
   );

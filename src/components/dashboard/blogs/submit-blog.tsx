@@ -163,7 +163,7 @@ export function SubmitBlogForm({ initialData, isEditing = false }: BlogFormProps
       router.refresh()
     } catch (error) {
       console.error("Error submitting blog:", error);
-      toast.error("Failed to submit blog");
+      toast.error(error instanceof Error ? error.message : "Failed to submit blog");
     } finally {
       setIsLoading(false);
     }

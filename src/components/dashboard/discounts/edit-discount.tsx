@@ -19,17 +19,8 @@ interface EditDiscountProps {
   };
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (updatedDiscount: any) => void;
+  onUpdate: (updatedDiscount: DiscountFormValues) => void;
 }
-
-const CATEGORIES = [
-  "Development",
-  "Cloud",
-  "Design",
-  "Productivity",
-  "Education",
-  "Entertainment"
-];
 
 interface DiscountFormValues {
   title: string;
@@ -42,6 +33,15 @@ interface DiscountFormValues {
   imageUrl?: string;
   status: string;
 }
+
+const CATEGORIES = [
+  "Development",
+  "Cloud",
+  "Design",
+  "Productivity",
+  "Education",
+  "Entertainment"
+];
 
 export function EditDiscountModal({ discount, isOpen, onClose, onUpdate }: EditDiscountProps) {
   const { toast } = useToast();

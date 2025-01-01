@@ -97,16 +97,6 @@ interface CardBodyProps {
   className?: string;
 }
 
-interface MouseMoveEvent {
-  clientX: number;
-  clientY: number;
-}
-
-interface CardBodyState {
-  mouseX: number;
-  mouseY: number;
-}
-
 export const CardBody = ({
   children,
   className,
@@ -115,7 +105,7 @@ export const CardBody = ({
   const [mouseX, setMouseX] = useState(0.5);
   const [mouseY, setMouseY] = useState(0.5);
 
-  const handleMouseMove = (e: MouseMoveEvent) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
 
     const { clientX, clientY } = e;

@@ -13,6 +13,10 @@ interface FormData {
   password: string;
 }
 
+interface AuthError {
+  message: string;
+}
+
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -42,9 +46,11 @@ export function LoginForm() {
 
       router.push(callbackUrl);
       router.refresh();
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
         setError(error.message);
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        setError((error as AuthError).message);
       } else {
         setError("Something went wrong");
       }
