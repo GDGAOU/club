@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useForm, useTransition } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
-import { loginSchema } from "../schemas/loginSchema";
+import { loginSchema } from "@/schemas/loginSchema";
 
 interface FormData {
   email: string;

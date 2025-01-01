@@ -8,13 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import { useTransition } from "react";
 import { signIn } from "next-auth/react";
-import { z } from "zod";
-
-const signUpSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string(),
-});
+import { signupSchema } from "@/schemas/loginSchema";
 
 interface FormData {
   email: string;
@@ -23,15 +17,16 @@ interface FormData {
 }
 
 export function SignUpForm() {
-  const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  const form = useForm<FormData>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      name: "",
-    },
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(signupSchema),
   });
 
   const onSubmit = (values: FormData) => {
@@ -71,14 +66,14 @@ export function SignUpForm() {
         Create an Account
       </h2>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
             Full Name
           </label>
           <input
             id="name"
-            {...form.register("name")}
+            {...register("name")}
             type="text"
             required
             className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -92,7 +87,7 @@ export function SignUpForm() {
           </label>
           <input
             id="email"
-            {...form.register("email")}
+            {...register("email")}
             type="email"
             required
             className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -106,7 +101,7 @@ export function SignUpForm() {
           </label>
           <input
             id="password"
-            {...form.register("password")}
+            {...register("password")}
             type="password"
             required
             className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
