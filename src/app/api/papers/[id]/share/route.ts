@@ -4,7 +4,7 @@ import clientPromise from '@/lib/mongodb';
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const { link } = await request.json();
@@ -12,7 +12,7 @@ export async function POST(
     const db = client.db(process.env.MONGODB_DB);
 
     const result = await db.collection('papers').updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(context.params.id) },
       { 
         $push: { 
           shareableLinks: link 
