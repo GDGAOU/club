@@ -6,11 +6,11 @@ import { toast } from "@/components/ui/use-toast";
 
 interface Notification {
   id: string;
-  type: string;
+  type: 'info' | 'success' | 'warning' | 'error';
   message: string;
-  createdAt: string;
+  metadata?: Record<string, string | number | boolean>;
   read: boolean;
-  metadata?: any;
+  createdAt: string;
 }
 
 interface NotificationsContextType {
@@ -37,7 +37,6 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   const { data: session } = useSession();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
   const fetchNotifications = async () => {
     if (!session?.user) return;
@@ -148,7 +147,6 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       sse.close();
     };
 
-    setEventSource(sse);
     fetchNotifications();
 
     return () => {

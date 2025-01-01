@@ -162,14 +162,10 @@ export function SubmitBlogForm({ initialData, isEditing = false }: BlogFormProps
       router.push("/dashboard/blogs")
       router.refresh()
     } catch (error) {
-      console.error("Submit error:", error)
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
+      console.error("Error submitting blog:", error);
+      toast.error("Failed to submit blog");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 

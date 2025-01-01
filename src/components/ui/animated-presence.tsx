@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 export const slideInVariants = {
   hidden: { opacity: 0, x: -20 },
   visible: (i: number) => ({

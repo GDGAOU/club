@@ -66,25 +66,18 @@ export async function PUT(
     }
 
     const json = await req.json();
-    const { role } = json;
+    const { role, userId } = json;
 
     const collaborator = await prisma.todoListCollaborator.update({
       where: {
-        id: json.id,
+        userId_todoListId: {
+          userId,
+          todoListId: params.listId
+        }
       },
       data: {
-        role,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
-        },
-      },
+        role
+      }
     });
 
     return NextResponse.json(collaborator);
@@ -104,18 +97,23 @@ export async function DELETE(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
-    const collaboratorId = searchParams.get("id");
+    const searchParams = new URL(req.url).searchParams;
+    const userId = searchParams.get("userId");
 
-    if (!collaboratorId) {
-      return new NextResponse("Collaborator ID required", { status: 400 });
+    if (!userId) {
+      return new NextResponse("User ID is required", { status: 400 });
     }
 
-    const collaborator = await prisma.todoListCollaborator.delete({
-      where: { id: collaboratorId },
+    await prisma.todoListCollaborator.delete({
+      where: {
+        userId_todoListId: {
+          userId,
+          todoListId: params.listId
+        }
+      }
     });
 
-    return NextResponse.json(collaborator);
+    return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("[COLLABORATORS_DELETE]", error);
     return new NextResponse("Internal Error", { status: 500 });

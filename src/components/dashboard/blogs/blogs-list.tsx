@@ -66,11 +66,8 @@ export function BlogsList() {
       const data = await response.json()
       return data
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch blogs",
-        variant: "destructive",
-      })
+      console.error("Error fetching blogs:", error)
+      toast.error("Failed to fetch blogs")
     }
   }
 
@@ -89,18 +86,12 @@ export function BlogsList() {
 
       if (!response.ok) throw new Error("Failed to publish blog")
 
-      toast({
-        title: "Success",
-        description: "Blog submitted for approval",
-      })
+      toast.success("Blog submitted for approval")
 
       fetchBlogs()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to publish blog",
-        variant: "destructive",
-      })
+      console.error("Error updating blog visibility:", error)
+      toast.error("Failed to update blog visibility")
     }
   }
 
@@ -114,20 +105,14 @@ export function BlogsList() {
 
       if (!response.ok) throw new Error("Failed to delete blog")
 
-      toast({
-        title: "Success",
-        description: "Blog deleted successfully",
-      })
+      toast.success("Blog deleted successfully")
 
       setShowDeleteDialog(false)
       setSelectedBlog(null)
       fetchBlogs()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete blog",
-        variant: "destructive",
-      })
+      console.error("Error deleting blog:", error)
+      toast.error("Failed to delete blog")
     }
   }
 

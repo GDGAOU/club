@@ -15,8 +15,6 @@ interface MovingBorderProps extends React.HTMLAttributes<HTMLDivElement> {
 type PathOptions = {
   progress: number;
   size: number;
-  rx: number;
-  ry: number;
 };
 
 export const MovingBorder = ({
@@ -39,14 +37,21 @@ export const MovingBorder = ({
   }, []);
 
   const path = (progress: number, options: PathOptions) => {
-    const { size, rx, ry } = options;
-    const offset = size * progress;
-    const start = `M${offset},0 L${size},0 L${size},${size} L0,${size} L0,0 L${offset},0`;
-    const commands = [
-      `a${rx},${ry},0,0,1,${rx * 2},0`,
-      `a${rx},${ry},0,0,1,-${rx * 2},0`,
-    ];
-    return `${start} ${commands.join(" ")}`;
+    const size = options.size;
+    const width = size;
+    const height = size;
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    const radiusX = (width * parseFloat(rx)) / 100;
+    const radiusY = (height * parseFloat(ry)) / 100;
+
+    return `
+      M ${centerX} ${centerY - radiusY}
+      A ${radiusX} ${radiusY} 0 1 1 ${centerX} ${centerY + radiusY}
+      A ${radiusX} ${radiusY} 0 1 1 ${centerX} ${centerY - radiusY}
+    `;
   };
 
   return (
@@ -68,7 +73,7 @@ export const MovingBorder = ({
         >
           <path
             ref={pathRef}
-            d={path(0, { progress: 0, size: 100, rx: 30, ry: 30 })}
+            d={path(0, { progress: 0, size: 100 })}
             className={cn(
               "stroke-2 fill-none [stroke-dasharray:_1_1] stroke-primary",
               gradient

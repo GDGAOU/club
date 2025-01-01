@@ -44,7 +44,7 @@ export default function DiscountsPage() {
               Submit New Discount
             </h1>
             <p className="text-muted-foreground mb-8">
-              Help your fellow students save money by sharing student discounts you've found.
+              Help your fellow students save money by sharing student discounts you&apos;ve found.
             </p>
             <SubmitDiscount onSuccess={handleDiscountSubmit} />
           </div>

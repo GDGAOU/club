@@ -3,6 +3,29 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
+interface PrismaError {
+  code: string;
+  message: string;
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  createdAt: Date;
+  user: {
+    id: string;
+    name: string;
+    image?: string;
+  };
+}
+
+interface SocialResponse {
+  likes: number;
+  comments: Comment[];
+  shares: number;
+  userHasLiked: boolean;
+}
+
 // Like/Unlike a discount
 export async function POST(
   request: NextRequest,
@@ -67,7 +90,7 @@ export async function POST(
       { status: 400 }
     );
   } catch (error) {
-    if ((error as any).code === "P2002") {
+    if ((error as PrismaError).code === "P2002") {
       return NextResponse.json(
         { error: "You have already liked this discount" },
         { status: 400 }
@@ -196,13 +219,6 @@ export async function PATCH(
       { status: 500 }
     );
   }
-}
-
-interface SocialResponse {
-  likes: number;
-  comments: any[];
-  shares: number;
-  userHasLiked: boolean;
 }
 
 // Get social data for a discount

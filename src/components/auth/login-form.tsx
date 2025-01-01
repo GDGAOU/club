@@ -5,9 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { useTransition } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
 import { loginSchema } from "@/schemas/loginSchema";
 
 interface FormData {
@@ -16,11 +14,9 @@ interface FormData {
 }
 
 export function LoginForm() {
-  const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
   const message = searchParams.get("message");
 
@@ -32,31 +28,27 @@ export function LoginForm() {
     },
   });
 
-  const onSubmit = async (values: FormData) => {
-    startTransition(async () => {
-      try {
-        const result = await signIn("credentials", {
-          email: values.email,
-          password: values.password,
-          redirect: false,
-        });
+  const onSubmit = async (data: FormData) => {
+    try {
+      const result = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
 
-        if (!result?.ok) {
-          throw new Error("Invalid credentials");
-        }
-
-        router.push(callbackUrl);
-        router.refresh();
-      } catch (error: any) {
-        if (error instanceof Error) {
-          setError(error.message);
-        } else {
-          setError("Something went wrong");
-        }
-      } finally {
-        setLoading(false);
+      if (!result?.ok) {
+        throw new Error("Invalid credentials");
       }
-    });
+
+      router.push(callbackUrl);
+      router.refresh();
+    } catch (error: any) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Something went wrong");
+      }
+    }
   };
 
   return (
@@ -108,10 +100,9 @@ export function LoginForm() {
 
         <button
           type="submit"
-          disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition-all duration-200"
         >
-          {loading ? "Signing in..." : "Sign In"}
+          Sign In
         </button>
       </form>
 

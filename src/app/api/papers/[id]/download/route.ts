@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { google } from "googleapis";
+import { Readable } from 'stream';
 
 // Initialize Google Drive API
 const auth = new google.auth.GoogleAuth({
@@ -70,7 +71,7 @@ export async function GET(
 
       // Convert stream to buffer for proper download handling
       const chunks: Uint8Array[] = [];
-      for await (const chunk of file.data as any) {
+      for await (const chunk of file.data as Readable) {
         chunks.push(chunk);
       }
       const buffer = Buffer.concat(chunks);

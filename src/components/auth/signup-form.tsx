@@ -18,46 +18,43 @@ interface FormData {
 
 export function SignUpForm() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormData>({
+  const [loading, setLoading] = useState(false);
+  const form = useForm<FormData>({
     resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
   });
 
-  const onSubmit = (values: FormData) => {
-    startTransition(async () => {
-      try {
-        const response = await fetch("/api/auth/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        });
+  const onSubmit = async (data: FormData) => {
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.message);
-        }
-
-        await signIn("credentials", {
-          email: values.email,
-          password: values.password,
-          callbackUrl: "/dashboard",
-        });
-      } catch (error) {
-        if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error("Something went wrong");
-        }
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message);
       }
-    });
+
+      await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        callbackUrl: "/dashboard",
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong");
+      }
+    }
   };
 
   return (
@@ -66,14 +63,14 @@ export function SignUpForm() {
         Create an Account
       </h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-1">
             Full Name
           </label>
           <input
             id="name"
-            {...register("name")}
+            {...form.register("name")}
             type="text"
             required
             className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -87,7 +84,7 @@ export function SignUpForm() {
           </label>
           <input
             id="email"
-            {...register("email")}
+            {...form.register("email")}
             type="email"
             required
             className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -101,7 +98,7 @@ export function SignUpForm() {
           </label>
           <input
             id="password"
-            {...register("password")}
+            {...form.register("password")}
             type="password"
             required
             className="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -111,10 +108,10 @@ export function SignUpForm() {
 
         <button
           type="submit"
-          disabled={isPending}
+          disabled={loading}
           className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
-          {isPending ? "Creating account..." : "Sign Up"}
+          {loading ? "Creating account..." : "Sign Up"}
         </button>
       </form>
 

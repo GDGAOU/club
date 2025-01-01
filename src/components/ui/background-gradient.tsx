@@ -3,14 +3,12 @@
 import { cn } from "@/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 
-interface BackgroundGradientProps extends React.HTMLProps<HTMLDivElement> {
+interface BackgroundGradientProps extends React.HTMLAttributes<HTMLDivElement> {
   gradientBackgroundStart?: string;
   gradientBackgroundEnd?: string;
   firstColor?: string;
   secondColor?: string;
   thirdColor?: string;
-  fourthColor?: string;
-  fifthColor?: string;
   pointerColor?: string;
   size?: string;
   blendingValue?: string;
@@ -26,8 +24,6 @@ export const BackgroundGradient = ({
   firstColor = "18, 113, 255",
   secondColor = "221, 74, 255",
   thirdColor = "100, 220, 255",
-  fourthColor = "200, 50, 50",
-  fifthColor = "180, 180, 50",
   pointerColor = "140, 100, 255",
   size = "80%",
   blendingValue = "hard-light",

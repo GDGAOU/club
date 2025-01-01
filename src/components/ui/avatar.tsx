@@ -3,15 +3,14 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
+type AvatarProps = React.HTMLAttributes<HTMLDivElement> & {
   src?: string;
   alt?: string;
   fallback?: string;
-}
+};
 
-interface AvatarImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {}
-
-interface AvatarFallbackProps extends React.HTMLAttributes<HTMLDivElement> {}
+type AvatarImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
+type AvatarFallbackProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function Avatar({ src, alt, fallback, className, ...props }: AvatarProps) {
   const [hasError, setHasError] = React.useState(false);
