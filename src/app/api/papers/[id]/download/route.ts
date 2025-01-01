@@ -1,4 +1,4 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -21,12 +21,12 @@ type DownloadResponse = {
 }
 
 export async function GET(
-  req: NextApiRequest,
-  res: NextApiResponse<DownloadResponse>
+  req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   const { id } = req.query;
   if (!id || typeof id !== 'string') {
-    return res.status(400).json({ downloadUrl: '', message: "Paper ID is required" });
+    return NextResponse.json({ downloadUrl: '', message: "Paper ID is required" }, { status: 400 });
   }
 
   try {
@@ -36,12 +36,12 @@ export async function GET(
     });
 
     if (!paper) {
-      return res.status(404).json({ downloadUrl: '', message: "Paper not found" });
+      return NextResponse.json({ downloadUrl: '', message: "Paper not found" }, { status: 404 });
     }
 
     // If paper is private, check if user is authenticated and is the owner
     if (!paper.isPublic && (!session?.user?.email || session.user.email !== paper.uploadedBy)) {
-      return res.status(401).json({ downloadUrl: '', message: "Unauthorized" });
+      return NextResponse.json({ downloadUrl: '', message: "Unauthorized" }, { status: 401 });
     }
 
     try {
@@ -66,29 +66,29 @@ export async function GET(
 
       const file = response.data;
       if (!file.webContentLink) {
-        return res.status(404).json({ 
+        return NextResponse.json({ 
           downloadUrl: '', 
           message: "Download link not available" 
-        });
+        }, { status: 404 });
       }
 
-      return res.status(200).json({ 
+      return NextResponse.json({ 
         downloadUrl: file.webContentLink,
         message: "Download link generated successfully" 
-      });
+      }, { status: 200 });
 
     } catch (error) {
       console.error('Error downloading file from Google Drive:', error);
       if (error instanceof Error) {
-        return res.status(404).json({ downloadUrl: '', message: error.message });
+        return NextResponse.json({ downloadUrl: '', message: error.message }, { status: 404 });
       }
-      return res.status(404).json({ downloadUrl: '', message: "An unknown error occurred" });
+      return NextResponse.json({ downloadUrl: '', message: "An unknown error occurred" }, { status: 404 });
     }
   } catch (error) {
     console.error('Error downloading paper:', error);
     if (error instanceof Error) {
-      return res.status(500).json({ downloadUrl: '', message: error.message });
+      return NextResponse.json({ downloadUrl: '', message: error.message }, { status: 500 });
     }
-    return res.status(500).json({ downloadUrl: '', message: "An unknown error occurred" });
+    return NextResponse.json({ downloadUrl: '', message: "An unknown error occurred" }, { status: 500 });
   }
 }
