@@ -16,12 +16,12 @@ const auth = new google.auth.GoogleAuth({
 const drive = google.drive({ version: 'v3', auth });
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+  request: Request,
+  context: { params: { id: string } }
+): Promise<NextResponse> {
   try {
     const paper = await prisma.paper.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       include: { user: true },
     });
 
