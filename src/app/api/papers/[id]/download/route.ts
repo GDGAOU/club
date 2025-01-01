@@ -23,11 +23,11 @@ interface DownloadResponse {
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ): Promise<NextResponse<DownloadResponse>> {
-  const id = params.id;
+  const id = context.params.id;
   if (!id) {
-    return new NextResponse({ message: "Paper ID is required" }, { status: 400 });
+    return NextResponse.json({ message: "Paper ID is required" }, { status: 400 });
   }
 
   try {
@@ -37,12 +37,12 @@ export async function GET(
     });
 
     if (!paper) {
-      return new NextResponse({ message: "Paper not found" }, { status: 404 });
+      return NextResponse.json({ message: "Paper not found" }, { status: 404 });
     }
 
     // If paper is private, check if user is authenticated and is the owner
     if (!paper.isPublic && (!session?.user?.email || session.user.email !== paper.uploadedBy)) {
-      return new NextResponse({ message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     try {
@@ -83,15 +83,15 @@ export async function GET(
     } catch (error) {
       console.error('Error downloading file from Google Drive:', error);
       if (error instanceof Error) {
-        return new NextResponse({ message: error.message }, { status: 404 });
+        return NextResponse.json({ message: error.message }, { status: 404 });
       }
-      return new NextResponse({ message: "An unknown error occurred" }, { status: 404 });
+      return NextResponse.json({ message: "An unknown error occurred" }, { status: 404 });
     }
   } catch (error) {
     console.error('Error downloading paper:', error);
     if (error instanceof Error) {
-      return new NextResponse({ message: error.message }, { status: 500 });
+      return NextResponse.json({ message: error.message }, { status: 500 });
     }
-    return new NextResponse({ message: "An unknown error occurred" }, { status: 500 });
+    return NextResponse.json({ message: "An unknown error occurred" }, { status: 500 });
   }
 }
