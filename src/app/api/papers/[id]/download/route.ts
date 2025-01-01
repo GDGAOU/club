@@ -1,3 +1,4 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -16,16 +17,16 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth });
 
-interface DownloadResponse {
+type DownloadResponse = {
   downloadUrl: string;
   message?: string;
 }
 
 export async function GET(
-  request: Request,
-  context: { params: { id: string } }
-): Promise<NextResponse<DownloadResponse>> {
-  const id = context.params.id;
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const id = params.id;
   if (!id) {
     return NextResponse.json({ message: "Paper ID is required" }, { status: 400 });
   }
