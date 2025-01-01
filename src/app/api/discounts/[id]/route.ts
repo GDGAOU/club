@@ -3,9 +3,11 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
+type RouteParams = { params: { id: string } };
+
 export async function DELETE(
-  request: NextRequest,
-  context: { params: { id: string } }
+  req: NextRequest,
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,7 +20,7 @@ export async function DELETE(
     }
 
     const discount = await prisma.discount.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       include: { user: true },
     });
 
@@ -38,7 +40,7 @@ export async function DELETE(
     }
 
     await prisma.discount.delete({
-      where: { id: context.params.id },
+      where: { id: params.id },
     });
 
     return NextResponse.json({ success: true });
@@ -52,8 +54,8 @@ export async function DELETE(
 }
 
 export async function PATCH(
-  request: NextRequest,
-  context: { params: { id: string } }
+  req: NextRequest,
+  { params }: RouteParams
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -65,10 +67,10 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    const body = await req.json();
 
     const discount = await prisma.discount.findUnique({
-      where: { id: context.params.id },
+      where: { id: params.id },
       include: { user: true },
     });
 
@@ -88,7 +90,7 @@ export async function PATCH(
     }
 
     const updatedDiscount = await prisma.discount.update({
-      where: { id: context.params.id },
+      where: { id: params.id },
       data: {
         title: body.title,
         description: body.description,
