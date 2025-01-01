@@ -1,0 +1,229 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  CO_ADMIN
+  CLUB_MEMBER
+  USER
+}
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  password      String?
+  studentId     String?
+  role          String    @default("USER")
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  todos         Todo[]
+  todoLists     TodoList[]
+  sharedTodos   SharedTodo[]
+  collaborations TodoListCollaborator[]
+  discounts     Discount[]
+  blogs         Blog[]
+  blogComments  BlogComment[]
+}
+
+model Todo {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String?
+  dueDate     DateTime?
+  priority    String    @default("medium")
+  status      String    @default("pending")
+  category    String    @default("Other")
+  tags        String[]  @default([])
+  isRecurring Boolean   @default(false)
+  recurringInterval String? // daily, weekly, monthly
+  completedAt DateTime?
+  reminder    DateTime?
+  attachments String[]  @default([])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String    @db.ObjectId
+  todoList    TodoList? @relation(fields: [todoListId], references: [id])
+  todoListId  String?   @db.ObjectId
+  subTasks    SubTask[]
+  sharedWith  SharedTodo[]
+}
+
+model TodoList {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  isPublic      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String    @db.ObjectId
+  todos         Todo[]
+  collaborators TodoListCollaborator[]
+}
+
+model SharedTodo {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  todo      Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  todoId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+}
+
+model TodoListCollaborator {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  todoList   TodoList @relation(fields: [todoListId], references: [id], onDelete: Cascade)
+  todoListId String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String   @db.ObjectId
+  role       String   @default("VIEWER") // VIEWER, EDITOR, ADMIN
+  createdAt  DateTime @default(now())
+}
+
+model SubTask {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  completed Boolean  @default(false)
+  todo      Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  todoId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Paper {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  moduleCode   String
+  pathway      String
+  year         Int
+  semester     Int
+  examType     String
+  fileId       String   // Google Drive file ID
+  fileSize     Int
+  isPublic     Boolean  @default(true)
+  uploadedBy   String
+  views        Int      @default(0)
+  downloads    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  downloadLog  PaperDownload[]
+}
+
+model PaperDownload {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  paper     Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  paperId   String   @db.ObjectId
+  userId    String?  // Optional since anonymous downloads are allowed
+  createdAt DateTime @default(now())
+}
+
+model Discount {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  code        String
+  discount    String
+  category    String
+  customCategory String?
+  link        String
+  imageUrl    String?
+  verifiedBy  String?   // Admin who verified the discount
+  verifiedAt  DateTime?
+  terms       String?   // Terms and conditions
+  howToUse    String?   // Instructions on how to use
+  targetGroup String?   // e.g., "All Students", "University Students", "High School Students"
+  platform    String?   // e.g., "Online", "In-Store", "Both"
+  minPurchase Float?    // Minimum purchase amount if any
+  maxDiscount Float?    // Maximum discount amount if any
+  status      String    @default("PENDING") // PENDING, APPROVED, REJECTED, EXPIRED
+  expiryDate  DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String    @db.ObjectId
+  likes       Like[]
+  comments    Comment[]
+  shares      Share[]
+  reports     Report[]  // New relation for reporting invalid discounts
+}
+
+model Like {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  discountId String   @db.ObjectId
+  userId     String   @db.ObjectId
+  createdAt  DateTime @default(now())
+}
+
+model Comment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  content    String
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  discountId String   @db.ObjectId
+  userId     String   @db.ObjectId
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Share {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  discountId String   @db.ObjectId
+  userId     String   @db.ObjectId
+  platform   String   // e.g., "twitter", "facebook", "whatsapp"
+  createdAt  DateTime @default(now())
+}
+
+model Report {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  reason      String
+  details     String?
+  status      String   @default("PENDING") // PENDING, RESOLVED, DISMISSED
+  discount    Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  discountId  String   @db.ObjectId
+  userId      String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
+}
+
+model Blog {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  content     String
+  summary     String?
+  image       String?
+  course      String?   // Course related to the blog
+  faculty     String?   // Faculty/Department
+  semester    String?   // Current semester
+  category    String    @default("GENERAL") // ACADEMIC, RESEARCH, CAMPUS_LIFE, GENERAL
+  tags        String[]  @default([])
+  status      String    @default("draft") // draft, published, archived
+  isApproved  Boolean   @default(false)  // Requires approval from admin/moderator
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String    @db.ObjectId
+  comments    BlogComment[]
+}
+
+model BlogComment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  blogId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @db.ObjectId
+}
