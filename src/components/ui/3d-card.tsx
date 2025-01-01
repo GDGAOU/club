@@ -92,47 +92,6 @@ export const CardContainer = ({
   );
 };
 
-interface CardBodyProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-export const CardBody = ({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-
-    const { clientX, clientY } = e;
-    const { left, top, width, height } = ref.current.getBoundingClientRect();
-
-    const x = (clientX - left) / width;
-    const y = (clientY - top) / height;
-
-    ref.current.style.setProperty("--x", `${x}`);
-    ref.current.style.setProperty("--y", `${y}`);
-  };
-
-  return (
-    <div
-      ref={ref}
-      onMouseMove={handleMouseMove}
-      className={cn(
-        "relative h-full w-full rounded-xl p-[2px] before:absolute before:inset-0 before:-z-10 before:rounded-xl before:bg-[radial-gradient(var(--x,_50%)_var(--y,_50%),circle,rgba(255,255,255,0.1)_0%,transparent_100%)] before:opacity-0 before:transition-opacity hover:before:opacity-100",
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-};
-
 interface CardItemProps {
   as?: React.ElementType;
   children: React.ReactNode;
@@ -178,6 +137,47 @@ export const CardItem = ({
     >
       {children}
     </Component>
+  );
+};
+
+export const CardBody = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const { clientX, clientY } = e;
+      const { left, top, width, height } = element.getBoundingClientRect();
+
+      const x = (clientX - left) / width;
+      const y = (clientY - top) / height;
+
+      element.style.setProperty("--x", `${x}`);
+      element.style.setProperty("--y", `${y}`);
+    };
+
+    element.addEventListener("mousemove", handleMouseMove);
+    return () => element.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "relative h-full w-full rounded-xl p-[2px] before:absolute before:inset-0 before:-z-10 before:rounded-xl before:bg-[radial-gradient(var(--x,_50%)_var(--y,_50%),circle,rgba(255,255,255,0.1)_0%,transparent_100%)] before:opacity-0 before:transition-opacity hover:before:opacity-100",
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 };
 
