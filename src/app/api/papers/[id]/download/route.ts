@@ -15,13 +15,18 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth });
 
+interface DownloadResponse {
+  downloadUrl: string;
+  message?: string;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse<DownloadResponse>> {
   const id = params.id;
   if (!id) {
-    return new NextResponse("Paper ID is required", { status: 400 });
+    return new NextResponse({ message: "Paper ID is required" }, { status: 400 });
   }
 
   try {
@@ -31,12 +36,12 @@ export async function GET(
     });
 
     if (!paper) {
-      return new NextResponse("Paper not found", { status: 404 });
+      return new NextResponse({ message: "Paper not found" }, { status: 404 });
     }
 
     // If paper is private, check if user is authenticated and is the owner
     if (!paper.isPublic && (!session?.user?.email || session.user.email !== paper.uploadedBy)) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return new NextResponse({ message: "Unauthorized" }, { status: 401 });
     }
 
     try {
@@ -76,10 +81,10 @@ export async function GET(
       });
     } catch (error) {
       console.error('Error downloading file from Google Drive:', error);
-      return new NextResponse("File not found in Google Drive", { status: 404 });
+      return new NextResponse({ message: "File not found in Google Drive" }, { status: 404 });
     }
   } catch (error) {
     console.error('Error downloading paper:', error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return new NextResponse({ message: "Internal Server Error" }, { status: 500 });
   }
 }

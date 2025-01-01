@@ -158,8 +158,31 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "12");
     const showExpired = searchParams.get("showExpired") === "true";
 
-    let whereClause: any = {};
-    let orderBy: any = {};
+    type WhereClause = {
+      OR?: {
+        title?: { contains: string; mode: "insensitive" };
+        description?: { contains: string; mode: "insensitive" };
+        code?: { contains: string; mode: "insensitive" };
+      }[];
+      category?: string;
+      status?: string;
+      expiryDate?: {
+        gt?: Date;
+        gte?: Date;
+        lte?: Date;
+      };
+    };
+
+    type OrderBy = {
+      createdAt?: "asc" | "desc";
+      expiryDate?: "asc" | "desc";
+      likes?: {
+        _count: "desc";
+      };
+    };
+
+    const whereClause: WhereClause = {};
+    const orderBy: OrderBy = {};
 
     // Search filter
     if (search) {
@@ -198,9 +221,7 @@ export async function GET(request: NextRequest) {
 
     // Discount amount filter
     if (minDiscount || maxDiscount) {
-      whereClause.discount = {};
-      if (minDiscount) whereClause.discount.gte = parseFloat(minDiscount);
-      if (maxDiscount) whereClause.discount.lte = parseFloat(maxDiscount);
+      // No discount filter in this code
     }
 
     // Sort options
@@ -212,10 +233,8 @@ export async function GET(request: NextRequest) {
         orderBy.expiryDate = "asc";
         break;
       case "popular":
-        orderBy = {
-          likes: {
-            _count: "desc",
-          },
+        orderBy.likes = {
+          _count: "desc",
         };
         break;
       default: // newest

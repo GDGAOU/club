@@ -37,24 +37,28 @@ export async function POST(req: Request) {
     // Set status to pending if user is trying to publish
     const status = body.status === "published" ? "pending" : body.status
 
-    const blog = await db.blog.create({
-      data: {
-        title: body.title,
-        content: body.content,
-        summary: body.summary || null,
-        image: body.image || null,
-        course: body.course || null,
-        faculty: body.faculty || null,
-        semester: body.semester || null,
-        category: body.category,
-        tags: body.tags,
-        status: status,
-        publishedAt: body.publishDate,
-        userId: session.user.id,
-      },
-    })
-
-    return NextResponse.json(blog)
+    try {
+      const blog = await db.blog.create({
+        data: {
+          title: body.title,
+          content: body.content,
+          summary: body.summary || null,
+          image: body.image || null,
+          course: body.course || null,
+          faculty: body.faculty || null,
+          semester: body.semester || null,
+          category: body.category,
+          tags: body.tags,
+          status: status,
+          publishedAt: body.publishDate,
+          userId: session.user.id,
+        },
+      })
+      return NextResponse.json(blog)
+    } catch (err) {
+      console.error('Error creating blog:', err)
+      return new NextResponse('Failed to create blog', { status: 500 })
+    }
   } catch (error) {
     console.error("Blog creation error:", error)
     if (error instanceof z.ZodError) {
@@ -76,18 +80,23 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const status = searchParams.get("status")
     
-    const blogs = await db.blog.findMany({
-      where: {
-        userId: session.user.id,
-        ...(status && { status }),
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    })
-
-    return NextResponse.json(blogs)
+    try {
+      const blogs = await db.blog.findMany({
+        where: {
+          userId: session.user.id,
+          ...(status && { status }),
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      })
+      return NextResponse.json(blogs)
+    } catch (err) {
+      console.error('Error fetching blogs:', err)
+      return new NextResponse('Failed to fetch blogs', { status: 500 })
+    }
   } catch (error) {
+    console.error("Blog fetch error:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }
@@ -108,37 +117,46 @@ export async function PATCH(req: Request) {
     }
 
     // Verify blog ownership
-    const blog = await db.blog.findUnique({
-      where: { id, userId: session.user.id },
-    })
+    try {
+      const blog = await db.blog.findUnique({
+        where: { id, userId: session.user.id },
+      })
 
-    if (!blog) {
-      return new NextResponse("Blog not found", { status: 404 })
+      if (!blog) {
+        return new NextResponse("Blog not found", { status: 404 })
+      }
+
+      const body = blogSchema.parse(updateData)
+
+      // Set status to pending if user is trying to publish
+      const status = body.status === "published" ? "pending" : body.status
+
+      try {
+        const updatedBlog = await db.blog.update({
+          where: { id },
+          data: {
+            title: body.title,
+            content: body.content,
+            summary: body.summary || null,
+            image: body.image || null,
+            course: body.course || null,
+            faculty: body.faculty || null,
+            semester: body.semester || null,
+            category: body.category,
+            tags: body.tags,
+            status: status,
+            publishedAt: body.publishDate,
+          },
+        })
+        return NextResponse.json(updatedBlog)
+      } catch (err) {
+        console.error('Error updating blog:', err)
+        return new NextResponse('Failed to update blog', { status: 500 })
+      }
+    } catch (err) {
+      console.error('Error verifying blog ownership:', err)
+      return new NextResponse('Failed to verify blog ownership', { status: 500 })
     }
-
-    const body = blogSchema.parse(updateData)
-
-    // Set status to pending if user is trying to publish
-    const status = body.status === "published" ? "pending" : body.status
-
-    const updatedBlog = await db.blog.update({
-      where: { id },
-      data: {
-        title: body.title,
-        content: body.content,
-        summary: body.summary || null,
-        image: body.image || null,
-        course: body.course || null,
-        faculty: body.faculty || null,
-        semester: body.semester || null,
-        category: body.category,
-        tags: body.tags,
-        status: status,
-        publishedAt: body.publishDate,
-      },
-    })
-
-    return NextResponse.json(updatedBlog)
   } catch (error) {
     console.error("Blog update error:", error)
     if (error instanceof z.ZodError) {
@@ -165,20 +183,30 @@ export async function DELETE(req: Request) {
     }
 
     // Verify blog ownership
-    const blog = await db.blog.findUnique({
-      where: { id, userId: session.user.id },
-    })
+    try {
+      const blog = await db.blog.findUnique({
+        where: { id, userId: session.user.id },
+      })
 
-    if (!blog) {
-      return new NextResponse("Blog not found", { status: 404 })
+      if (!blog) {
+        return new NextResponse("Blog not found", { status: 404 })
+      }
+
+      try {
+        await db.blog.delete({
+          where: { id },
+        })
+        return new NextResponse(null, { status: 204 })
+      } catch (err) {
+        console.error('Error deleting blog:', err)
+        return new NextResponse('Failed to delete blog', { status: 500 })
+      }
+    } catch (err) {
+      console.error('Error verifying blog ownership:', err)
+      return new NextResponse('Failed to verify blog ownership', { status: 500 })
     }
-
-    await db.blog.delete({
-      where: { id },
-    })
-
-    return new NextResponse(null, { status: 204 })
   } catch (error) {
+    console.error("Blog deletion error:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

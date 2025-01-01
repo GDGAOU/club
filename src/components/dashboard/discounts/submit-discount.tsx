@@ -29,6 +29,7 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
+import { Loader2Icon } from "lucide-react";
 
 interface Discount {
   id: string;

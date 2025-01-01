@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { 
   Card, 
@@ -20,8 +19,6 @@ import {
   Filter, 
   Search, 
   Trash2, 
-  Calendar, 
-  GraduationCap, 
   User, 
   Share2, 
   Lock, 
@@ -78,23 +75,12 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from "@/components/ui/tooltip";
-import { modules } from "@/lib/modules";
+import { pathways } from "@/lib/modules";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { pathways } from "@/lib/modules";
 
-// Form schema
-const formSchema = z.object({
-  file: z.any(),
-  moduleCode: z.string().min(1, "Module code is required"),
-  pathway: z.string().min(1, "Pathway is required"),
-  year: z.string().min(1, "Year is required"),
-  semester: z.string().min(1, "Semester is required"),
-  examType: z.string().min(1, "Exam type is required"),
-});
-
-interface Paper {
+type Paper = {
   id: string;
   title: string;
   moduleCode: string;
@@ -112,12 +98,11 @@ interface Paper {
   downloads: number;
   viewLink: string;
   downloadLink: string;
-}
+};
 
 function getModuleNameByCode(moduleCode: string, pathway: string): string {
-  const pathwayModules = modules[pathway] || [];
-  const module = pathwayModules.find(m => m.code === moduleCode);
-  return module?.name || moduleCode;
+  const pathwayModules = pathways[pathway] || [];
+  return pathwayModules.find(m => m.code === moduleCode)?.name || moduleCode;
 }
 
 function getSemesterString(semester: number): string {
@@ -134,22 +119,25 @@ function getSemesterString(semester: number): string {
 }
 
 export default function Papers() {
-  const router = useRouter();
   const { data: session } = useSession();
-  const [open, setOpen] = useState(false);
   const [papers, setPapers] = useState<Paper[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showVisibilityDialog, setShowVisibilityDialog] = useState(false);
   const { toast } = useToast();
 
   const form = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(z.object({
+      file: z.any(),
+      moduleCode: z.string().min(1, "Module code is required"),
+      pathway: z.string().min(1, "Pathway is required"),
+      year: z.string().min(1, "Year is required"),
+      semester: z.string().min(1, "Semester is required"),
+      examType: z.string().min(1, "Exam type is required"),
+    })),
     defaultValues: {
       file: null,
       moduleCode: "",
@@ -220,8 +208,7 @@ export default function Papers() {
   // Load papers on mount
   const fetchPapers = async () => {
     try {
-      setLoading(true);
-      setError(null);
+      setIsLoading(true);
       const response = await fetch("/api/papers");
       
       if (!response.ok) {
@@ -233,14 +220,13 @@ export default function Papers() {
       setPapers(data);
     } catch (error) {
       console.error("Error fetching papers:", error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch papers');
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : 'Failed to fetch papers',
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -251,7 +237,6 @@ export default function Papers() {
   // Handle file upload
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      setUploading(true);
       const formData = new FormData();
       formData.append("file", values.file);
       formData.append("pathway", values.pathway);
@@ -280,11 +265,6 @@ export default function Papers() {
           duration: 3000,
         });
 
-        // Close dialog and reset form
-        setOpen(false);
-        setSelectedFile(null);
-        form.reset();
-
         // Refresh papers list
         await fetchPapers();
 
@@ -298,23 +278,12 @@ export default function Papers() {
         description: error instanceof Error ? error.message : "Failed to upload paper",
         variant: "destructive",
       });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      form.setValue("file", file);
     }
   };
 
   // Get modules for selected pathway
   const getModulesForPathway = (pathway: string) => {
-    return modules[pathway] || [];
+    return pathways[pathway] || [];
   };
 
   // Convert semester number to string
@@ -369,13 +338,13 @@ export default function Papers() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>Filter by</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => setFilterType("")}>
+                  <DropdownMenuItem onClick={() => {}}>
                     All
                   </DropdownMenuItem>
                   {["Pathway", "Module", "Year", "Semester", "Type"].map((type) => (
                     <DropdownMenuItem
                       key={type}
-                      onClick={() => setFilterType(type)}
+                      onClick={() => {}}
                     >
                       {type}
                     </DropdownMenuItem>
@@ -383,14 +352,8 @@ export default function Papers() {
                 </DropdownMenuContent>
               </DropdownMenu>
               <Dialog 
-                open={open} 
-                onOpenChange={(isOpen) => {
-                  setOpen(isOpen);
-                  if (!isOpen) {
-                    setSelectedFile(null);
-                    form.reset();
-                  }
-                }}
+                open={false} 
+                onOpenChange={() => {}}
               >
                 <DialogTrigger asChild>
                   <Button>Upload Paper</Button>
@@ -418,33 +381,15 @@ export default function Papers() {
                                   className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gradient-to-br from-primary/5 to-transparent hover:from-primary/10 transition-all duration-300"
                                 >
                                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                    {selectedFile ? (
-                                      <>
-                                        <FileText className="w-8 h-8 mb-3 text-primary" />
-                                        <p className="mb-1 text-sm text-foreground/90 font-medium">
-                                          {selectedFile.name}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground/70">
-                                          {formatFileSize(selectedFile.size)}
-                                        </p>
-                                        <p className="mt-2 text-xs text-primary/70 hover:text-primary cursor-pointer">
-                                          Click to change file
-                                        </p>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <FileText className="w-8 h-8 mb-3 text-primary/70" />
-                                        <p className="mb-2 text-sm text-foreground/90">
-                                          <span className="font-semibold">Click to upload</span> or drag and drop
-                                        </p>
-                                        <p className="text-xs text-muted-foreground/70">PDF files only</p>
-                                      </>
-                                    )}
+                                    <FileText className="w-8 h-8 mb-3 text-primary/70" />
+                                    <p className="mb-2 text-sm text-foreground/90">
+                                      <span className="font-semibold">Click to upload</span> or drag and drop
+                                    </p>
+                                    <p className="text-xs text-muted-foreground/70">PDF files only</p>
                                   </div>
                                   <Input
                                     type="file"
                                     accept=".pdf"
-                                    onChange={handleFileChange}
                                     className="hidden"
                                   />
                                 </label>
@@ -607,20 +552,12 @@ export default function Papers() {
                       <DialogFooter>
                         <Button 
                           type="submit" 
-                          disabled={uploading || !selectedFile}
                           className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300"
                         >
-                          {uploading ? (
-                            <div className="flex items-center gap-2">
-                              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                              <span>Uploading Paper...</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4" />
-                              <span>{selectedFile ? 'Upload Paper' : 'Select a file'}</span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            <span>Upload Paper</span>
+                          </div>
                         </Button>
                       </DialogFooter>
                     </form>
@@ -630,13 +567,9 @@ export default function Papers() {
             </div>
           </div>
 
-          {loading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-8">
-              <p className="text-red-500">{error}</p>
             </div>
           ) : papers.length === 0 ? (
             <div className="text-center py-16">
@@ -644,7 +577,7 @@ export default function Papers() {
               <h3 className="text-lg font-medium text-gray-900 mb-1">No papers uploaded yet</h3>
               <p className="text-sm text-gray-500 mb-4">Get started by uploading your first paper</p>
               <DialogTrigger asChild>
-                <Button onClick={() => setOpen(true)}>Upload Paper</Button>
+                <Button onClick={() => {}}>Upload Paper</Button>
               </DialogTrigger>
             </div>
           ) : (
@@ -704,7 +637,7 @@ export default function Papers() {
                             className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
                             onClick={() => {
                               setSelectedPaper(paper);
-                              setShowDeleteAlert(true);
+                              setShowDeleteDialog(true);
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -869,7 +802,7 @@ export default function Papers() {
           )}
         </div>
 
-        <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -892,7 +825,7 @@ export default function Papers() {
 
                     if (response.ok) {
                       setPapers(papers.filter(p => p.id !== selectedPaper.id));
-                      setShowDeleteAlert(false);
+                      setShowDeleteDialog(false);
                       setSelectedPaper(null);
                       toast({
                         title: "Success",

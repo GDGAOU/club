@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get("unreadOnly") === "true";
     const type = searchParams.get("type");
 
-    let whereClause: any = {
+    const whereClause: Record<string, unknown> = {
       userId: session.user.id,
     };
 

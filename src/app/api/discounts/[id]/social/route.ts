@@ -198,11 +198,18 @@ export async function PATCH(
   }
 }
 
+interface SocialResponse {
+  likes: number;
+  comments: any[];
+  shares: number;
+  userHasLiked: boolean;
+}
+
 // Get social data for a discount
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse<SocialResponse>> {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {

@@ -3,6 +3,15 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
+type WhereClause = {
+  discountId?: string;
+  action?: string;
+  createdAt?: {
+    gte?: Date;
+    lte?: Date;
+  };
+};
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -71,7 +80,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    let whereClause: any = {};
+    const whereClause: WhereClause = {};
 
     if (discountId) {
       whereClause.discountId = discountId;
