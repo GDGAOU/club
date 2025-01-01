@@ -1,5 +1,3 @@
-import { PATHWAYS } from "@/data/modules";
-
 export type PaperType = "midterm" | "final" | "assignment" | "quiz" | "other";
 
 export const PAPER_TYPES: PaperType[] = ["midterm", "final", "assignment", "quiz", "other"];

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {
   ArrowDownTrayIcon,
@@ -12,7 +12,6 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { ExtendedPaper, PaperType, FilterCriteria } from './types';
-import dynamic from 'next/dynamic';
 
 interface UploadMetadata {
   moduleCode: string;
@@ -227,7 +226,12 @@ export const PastPapers: React.FC<PastPapersProps> = ({
 
   const renderPaperCard = (paper: ExtendedPaper) => {
     const uploadDate = new Date(paper.uploadedAt);
-    const formattedDate = uploadDate.toLocaleDateString();
+    const dateOptions: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(uploadDate);
 
     return (
       <div key={paper._id} className="group relative overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/50 backdrop-blur-sm transition-all duration-300 hover:border-neutral-700">
@@ -260,7 +264,7 @@ export const PastPapers: React.FC<PastPapersProps> = ({
               </div>
               <div className="shrink-0">
                 <div className="px-2 py-1 bg-neutral-800/80 rounded text-xs text-neutral-400">
-                  {new Date(paper?.uploadedAt || Date.now()).toLocaleDateString()}
+                  {formattedDate}
                 </div>
               </div>
             </div>
@@ -323,18 +327,9 @@ export const PastPapers: React.FC<PastPapersProps> = ({
               <Button
                 variant="ghost"
                 size="default"
-                className={cn(
-                  "h-11 w-11 flex items-center justify-center",
-                  paper.visibility === 'public'
-                    ? "bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400"
-                    : "bg-purple-500/10 hover:bg-purple-500/20 text-purple-400"
-                )}
+                className="h-11 w-11 flex items-center justify-center bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400"
               >
-                {paper.visibility === 'public' ? (
-                  <EyeIcon className="w-5 h-5" />
-                ) : (
-                  <EyeSlashIcon className="w-5 h-5" />
-                )}
+                <EyeIcon className="w-5 h-5" />
               </Button>
               <Button
                 variant="ghost"
@@ -369,10 +364,7 @@ export const PastPapers: React.FC<PastPapersProps> = ({
             <Button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               variant="outline"
-              className={cn(
-                "gap-2",
-                showAdvancedFilters && "bg-blue-500/10 text-blue-400 border-blue-500/50"
-              )}
+              className="gap-2"
             >
               Filters
             </Button>

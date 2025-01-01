@@ -215,7 +215,7 @@ export default function Papers() {
 
   useEffect(() => {
     fetchPapers();
-  }, []);
+  }, [fetchPapers]);
 
   // Handle file upload
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
