@@ -115,11 +115,19 @@ export function SubmitBlogForm({ initialData, isEditing = false }: BlogFormProps
         // For now, we'll just use a placeholder URL
         form.setValue("image", URL.createObjectURL(file))
       } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to upload image. Please try again.",
-          variant: "destructive",
-        })
+        if (error instanceof Error) {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          })
+        } else {
+          toast({
+            title: "Error",
+            description: "Failed to upload image. Please try again.",
+            variant: "destructive",
+          })
+        }
       }
     }
   }
