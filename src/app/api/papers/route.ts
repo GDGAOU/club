@@ -17,7 +17,7 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth });
 
-export const GET: RouteHandler = async (request) => {
+export const GET: RouteHandler = async (_request) => {
   try {
     const session = await getServerSession(authOptions);
     

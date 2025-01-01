@@ -16,10 +16,7 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth });
 
-export const GET: RouteHandler = async (
-  request: Request,
-  { params }: { params: { id: string } }
-) => {
+export const GET: RouteHandler = async (_request, { params }: { params: { id: string } }) => {
   const id = params.id;
   if (!id) {
     return new NextResponse("Paper ID is required", { status: 400 });
