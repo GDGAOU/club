@@ -1,7 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
 import { BsGithub, BsLinkedin, BsTwitter } from "react-icons/bs";
-import Image from "next/image";
 
 const team = [
   {

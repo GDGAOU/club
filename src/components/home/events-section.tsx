@@ -51,11 +51,11 @@ export function EventsSection() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-4">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Upcoming Events
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Don't miss out on our exciting events and opportunities to learn and grow.
+          <p className="mt-2 text-lg leading-8 text-gray-400">
+            Don&apos;t miss out on our upcoming events and activities.
           </p>
         </motion.div>
 

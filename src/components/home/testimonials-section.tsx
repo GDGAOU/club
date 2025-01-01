@@ -104,7 +104,7 @@ export function TestimonialsSection() {
 
             <div className="relative z-10">
               <p className="text-lg text-gray-300 mb-6 italic">
-                "{testimonials[currentIndex].text}"
+                &ldquo;{testimonials[currentIndex].text}&rdquo;
               </p>
 
               <div className="flex items-center gap-4">
