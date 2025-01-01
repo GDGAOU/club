@@ -3,31 +3,38 @@
 import React, { createContext, useContext, useCallback } from "react";
 import { useSession } from "next-auth/react";
 
-interface AnalyticsContextType {
-  trackEvent: (eventName: string, eventData?: any) => void;
+interface AnalyticsEvent {
+  name: string;
+  properties?: Record<string, string | number | boolean>;
 }
 
-const AnalyticsContext = createContext<AnalyticsContextType | undefined>(undefined);
+interface AnalyticsContextType {
+  trackEvent: (event: AnalyticsEvent) => void;
+}
+
+const AnalyticsContext = createContext<AnalyticsContextType>({
+  trackEvent: () => {},
+});
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
 
   const trackEvent = useCallback(
-    (eventName: string, eventData?: any) => {
+    (event: AnalyticsEvent) => {
       // Add user data from session if available
       const enrichedData = {
-        ...eventData,
+        ...event.properties,
         userId: session?.user?.id,
         timestamp: new Date().toISOString(),
       };
 
       // Log to console in development
       if (process.env.NODE_ENV === "development") {
-        console.log("Analytics Event:", eventName, enrichedData);
+        console.log("Analytics Event:", event.name, enrichedData);
       }
 
       // Here you would typically send this to your analytics service
-      // For example: mixpanel.track(eventName, enrichedData);
+      // For example: mixpanel.track(event.name, enrichedData);
     },
     [session]
   );

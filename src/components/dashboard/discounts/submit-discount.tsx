@@ -6,6 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { CurrencyDollarIcon, Loader2Icon } from "lucide-react";
 
 const categories = [
   { label: "Food & Drink", value: "Food & Drink" },
@@ -51,11 +57,30 @@ interface Discount {
   };
 }
 
+interface FormData {
+  title: string;
+  description: string;
+  code: string;
+  link: string;
+  category: string;
+  discount: string;
+  status: string;
+  expiryDate: string;
+  visible: boolean;
+  targetGroup: string;
+  platform: string;
+  minPurchase: number;
+  maxDiscount: number;
+  terms: string;
+  howToUse: string;
+  customCategory: string;
+}
+
 interface SubmitDiscountProps {
   onSuccess?: (discount: Discount) => void;
 }
 
-const formSchema = {
+const formSchema: FormData = {
   title: "",
   description: "",
   code: "",
@@ -70,9 +95,16 @@ const formSchema = {
   minPurchase: 0,
   maxDiscount: 0,
   expiryDate: "",
+  visible: false,
 };
 
-const handleSubmit = async (e: React.FormEvent, formData: any, onSuccess: any, setIsSubmitting: any, toast: any) => {
+const handleSubmit = async (
+  e: React.FormEvent,
+  formData: FormData,
+  onSuccess: (discount: Discount) => void,
+  setIsSubmitting: (value: boolean) => void,
+  toast: { error: (message: string) => void; success: (message: string) => void }
+) => {
   e.preventDefault();
   setIsSubmitting(true);
 
@@ -104,22 +136,20 @@ const handleSubmit = async (e: React.FormEvent, formData: any, onSuccess: any, s
       onSuccess(newDiscount);
     }
 
-    toast({
+    toast.success({
       title: "Success!",
       description: "Your discount has been submitted and is pending review. We'll notify you once it's approved.",
     });
   } catch (error) {
     if (error instanceof Error) {
-      toast({
+      toast.error({
         title: "Error",
         description: error.message,
-        variant: "destructive",
       });
     } else {
-      toast({
+      toast.error({
         title: "Error",
         description: "Failed to submit discount",
-        variant: "destructive",
       });
     }
   } finally {

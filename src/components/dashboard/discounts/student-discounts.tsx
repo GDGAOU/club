@@ -1,9 +1,11 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/use-toast";
-import { SubmitDiscountModal } from "./submit-discount";
+import { SubmitDiscount } from "./submit-discount";
 import { EditDiscountModal } from "./edit-discount";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
@@ -216,7 +218,7 @@ export function StudentDiscounts() {
         </TabsContent>
       </Tabs>
 
-      <SubmitDiscountModal
+      <SubmitDiscount
         isOpen={showSubmitModal}
         onClose={() => setShowSubmitModal(false)}
         onSubmit={(newDiscount) => {

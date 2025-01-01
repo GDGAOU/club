@@ -8,21 +8,30 @@ interface Notification {
   id: string;
   type: string;
   message: string;
-  read: boolean;
   createdAt: string;
+  read: boolean;
   metadata?: any;
 }
 
 interface NotificationsContextType {
   notifications: Notification[];
   unreadCount: number;
-  markAsRead: (notificationIds: string[]) => Promise<void>;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
   fetchNotifications: () => Promise<void>;
   addNotification: (notification: Omit<Notification, "id" | "read" | "createdAt">) => void;
   clearNotifications: () => void;
 }
 
-const NotificationsContext = createContext<NotificationsContextType | undefined>(undefined);
+const NotificationsContext = createContext<NotificationsContextType>({
+  notifications: [],
+  unreadCount: 0,
+  markAsRead: async () => {},
+  markAllAsRead: async () => {},
+  fetchNotifications: async () => {},
+  addNotification: () => {},
+  clearNotifications: () => {},
+});
 
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
@@ -46,7 +55,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     }
   };
 
-  const markAsRead = async (notificationIds: string[]) => {
+  const markAsRead = async (id: string) => {
     if (!session?.user) return;
 
     try {
@@ -55,21 +64,44 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ notificationIds }),
+        body: JSON.stringify({ notificationIds: [id] }),
       });
 
       if (response.ok) {
         setNotifications(prev =>
           prev.map(notification =>
-            notificationIds.includes(notification.id)
+            notification.id === id
               ? { ...notification, read: true }
               : notification
           )
         );
-        setUnreadCount(prev => prev - notificationIds.length);
+        setUnreadCount(prev => prev - 1);
       }
     } catch (error) {
-      console.error("Error marking notifications as read:", error);
+      console.error("Error marking notification as read:", error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!session?.user) return;
+
+    try {
+      const response = await fetch("/api/notifications", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ notificationIds: notifications.map(n => n.id) }),
+      });
+
+      if (response.ok) {
+        setNotifications(prev =>
+          prev.map(notification => ({ ...notification, read: true }))
+        );
+        setUnreadCount(0);
+      }
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
     }
   };
 
@@ -130,6 +162,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
         notifications,
         unreadCount,
         markAsRead,
+        markAllAsRead,
         fetchNotifications,
         addNotification,
         clearNotifications,
