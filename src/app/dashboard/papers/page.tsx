@@ -105,19 +105,6 @@ function getModuleNameByCode(moduleCode: string, pathway: string): string {
   return pathwayModules.find(m => m.code === moduleCode)?.name || moduleCode;
 }
 
-function getSemesterString(semester: number): string {
-  switch (semester) {
-    case 1:
-      return "Fall";
-    case 2:
-      return "Spring";
-    case 3:
-      return "Summer";
-    default:
-      return "Unknown";
-  }
-}
-
 export default function Papers() {
   const { data: session } = useSession();
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -125,8 +112,6 @@ export default function Papers() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPaper, setSelectedPaper] = useState<Paper | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showShareDialog, setShowShareDialog] = useState(false);
-  const [showVisibilityDialog, setShowVisibilityDialog] = useState(false);
   const { toast } = useToast();
 
   const form = useForm({
@@ -179,7 +164,7 @@ export default function Papers() {
       } else {
         throw new Error('Failed to update visibility');
       }
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to update paper visibility",
@@ -196,10 +181,10 @@ export default function Papers() {
         title: "Success",
         description: "Link copied to clipboard!",
       });
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
-        description: "Failed to copy link",
+        description: "Failed to copy link to clipboard",
         variant: "destructive",
       });
     }
@@ -212,17 +197,15 @@ export default function Papers() {
       const response = await fetch("/api/papers");
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch papers');
+        throw new Error('Failed to fetch papers');
       }
       
       const data = await response.json();
       setPapers(data);
-    } catch (error) {
-      console.error("Error fetching papers:", error);
+    } catch {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'Failed to fetch papers',
+        description: "Failed to fetch papers",
         variant: "destructive",
       });
     } finally {
@@ -271,32 +254,12 @@ export default function Papers() {
       } else {
         throw new Error("Upload failed");
       }
-    } catch (error) {
-      console.error("Error:", error);
+    } catch {
       toast({
         title: "Upload Failed",
-        description: error instanceof Error ? error.message : "Failed to upload paper",
+        description: "Failed to upload paper",
         variant: "destructive",
       });
-    }
-  };
-
-  // Get modules for selected pathway
-  const getModulesForPathway = (pathway: string) => {
-    return pathways[pathway] || [];
-  };
-
-  // Convert semester number to string
-  const getSemesterString = (semester: number) => {
-    switch (semester) {
-      case 1:
-        return "Fall";
-      case 2:
-        return "Spring";
-      case 3:
-        return "Summer";
-      default:
-        return "Unknown";
     }
   };
 
@@ -781,8 +744,7 @@ export default function Papers() {
                             
                             // Open in new tab
                             window.open(paper.downloadLink, '_blank');
-                          } catch (error) {
-                            console.error('Error downloading:', error);
+                          } catch {
                             toast({
                               title: "Error",
                               description: "Failed to download paper",
@@ -834,11 +796,10 @@ export default function Papers() {
                     } else {
                       throw new Error(data.error || 'Failed to delete paper');
                     }
-                  } catch (error) {
-                    console.error('Error deleting paper:', error);
+                  } catch {
                     toast({
                       title: "Error",
-                      description: error instanceof Error ? error.message : "Failed to delete paper",
+                      description: "Failed to delete paper",
                       variant: "destructive",
                     });
                   }

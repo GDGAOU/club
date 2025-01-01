@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { BackgroundGradient } from "@/components/ui/background-gradient";
-import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
 import { CommunityFeed } from "./community-feed";
 import { CommunityMembers } from "./community-members";
 import { CommunityEvents } from "./community-events";

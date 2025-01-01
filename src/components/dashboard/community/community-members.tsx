@@ -1,7 +1,6 @@
 "use client";
 
-import { CardBody, CardContainer, CardItem } from "@/components/ui/3d-card";
-import { BackgroundGradient } from "@/components/ui/background-gradient";
+import { CardBody, CardContainer } from "@/components/ui/3d-card";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 
 export function CommunityMembers() {
