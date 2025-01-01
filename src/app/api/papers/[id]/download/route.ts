@@ -1,4 +1,4 @@
-import type { NextRequest } from 'next/server';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -23,12 +23,12 @@ type DownloadResponse = {
 }
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  req: NextApiRequest,
+  res: NextApiResponse
 ) {
-  const id = params.id;
-  if (!id) {
-    return NextResponse.json({ message: "Paper ID is required" }, { status: 400 });
+  const { id } = req.query;
+  if (!id || typeof id !== 'string') {
+    return res.status(400).json({ message: "Paper ID is required" });
   }
 
   try {
@@ -38,12 +38,12 @@ export async function GET(
     });
 
     if (!paper) {
-      return NextResponse.json({ message: "Paper not found" }, { status: 404 });
+      return res.status(404).json({ message: "Paper not found" });
     }
 
     // If paper is private, check if user is authenticated and is the owner
     if (!paper.isPublic && (!session?.user?.email || session.user.email !== paper.uploadedBy)) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     try {
@@ -84,15 +84,15 @@ export async function GET(
     } catch (error) {
       console.error('Error downloading file from Google Drive:', error);
       if (error instanceof Error) {
-        return NextResponse.json({ message: error.message }, { status: 404 });
+        return res.status(404).json({ message: error.message });
       }
-      return NextResponse.json({ message: "An unknown error occurred" }, { status: 404 });
+      return res.status(404).json({ message: "An unknown error occurred" });
     }
   } catch (error) {
     console.error('Error downloading paper:', error);
     if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 500 });
+      return res.status(500).json({ message: error.message });
     }
-    return NextResponse.json({ message: "An unknown error occurred" }, { status: 500 });
+    return res.status(500).json({ message: "An unknown error occurred" });
   }
 }
