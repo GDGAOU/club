@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { ClientLayout } from "@/components/client-layout";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: 'GDG AOU',
@@ -16,7 +17,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <ClientLayout>
-        <Providers>{children}</Providers>
+        <Providers>
+          <body className="min-h-screen bg-background font-sans antialiased">
+            {children}
+            <Toaster />
+          </body>
+        </Providers>
       </ClientLayout>
     </html>
   )

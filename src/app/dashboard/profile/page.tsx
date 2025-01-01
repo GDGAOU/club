@@ -1,26 +1,15 @@
-import { auth } from "@clerk/nextjs";
-import { ProfileForm } from "@/components/dashboard/profile/profile-form";
-import { db } from "@/lib/db";
-import { notFound } from "next/navigation";
+"use client";
+
+import { getServerSession } from "next-auth";
+import { ProfileForm } from "@/components/dashboard/profile-form";
+import { authOptions } from "@/lib/auth";
 
 export default async function ProfilePage() {
-  const { userId } = auth();
-
-  if (!userId) {
-    return notFound();
-  }
-
-  const user = await db.user.findUnique({
-    where: { id: userId },
-  });
-
-  if (!user) {
-    return notFound();
-  }
+  const session = await getServerSession(authOptions);
 
   return (
-    <div className="flex-1 space-y-4 p-8 pt-6">
-      <ProfileForm user={user} />
+    <div className="container mx-auto py-10">
+      <ProfileForm user={session?.user} />
     </div>
   );
 }
