@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { CurrencyDollarIcon, Loader2Icon } from "lucide-react";
+import { DollarSign, Loader2 } from "lucide-react";
 
 const categories = [
   { label: "Food & Drink", value: "Food & Drink" },
@@ -298,7 +298,7 @@ export function SubmitDiscount({ onSuccess }: SubmitDiscountProps) {
                   </div>
                   {hasMinPurchase && (
                     <div className="relative">
-                      <CurrencyDollarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         type="number"
                         className="pl-9"
@@ -322,7 +322,7 @@ export function SubmitDiscount({ onSuccess }: SubmitDiscountProps) {
                   </div>
                   {hasMaxDiscount && (
                     <div className="relative">
-                      <CurrencyDollarIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <DollarSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         type="number"
                         className="pl-9"
@@ -369,7 +369,7 @@ export function SubmitDiscount({ onSuccess }: SubmitDiscountProps) {
           >
             {isSubmitting ? (
               <>
-                <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...
               </>
             ) : (
