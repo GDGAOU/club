@@ -81,10 +81,16 @@ export async function GET(
       });
     } catch (error) {
       console.error('Error downloading file from Google Drive:', error);
-      return new NextResponse({ message: "File not found in Google Drive" }, { status: 404 });
+      if (error instanceof Error) {
+        return new NextResponse({ message: error.message }, { status: 404 });
+      }
+      return new NextResponse({ message: "An unknown error occurred" }, { status: 404 });
     }
   } catch (error) {
     console.error('Error downloading paper:', error);
-    return new NextResponse({ message: "Internal Server Error" }, { status: 500 });
+    if (error instanceof Error) {
+      return new NextResponse({ message: error.message }, { status: 500 });
+    }
+    return new NextResponse({ message: "An unknown error occurred" }, { status: 500 });
   }
 }

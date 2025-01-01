@@ -538,7 +538,7 @@ export default function Papers() {
             <div className="text-center py-16">
               <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-1">No papers uploaded yet</h3>
-              <p className="text-sm text-gray-500 mb-4">Get started by uploading your first paper</p>
+              <p className="text-sm text-gray-500 mb-4">Here&apos;s a list of all your past papers</p>
               <DialogTrigger asChild>
                 <Button onClick={() => {}}>Upload Paper</Button>
               </DialogTrigger>
@@ -783,19 +783,17 @@ export default function Papers() {
                       method: 'DELETE',
                     });
 
-                    const data = await response.json();
-
-                    if (response.ok) {
-                      setPapers(papers.filter(p => p.id !== selectedPaper.id));
-                      setShowDeleteDialog(false);
-                      setSelectedPaper(null);
-                      toast({
-                        title: "Success",
-                        description: data.message || "Paper deleted successfully",
-                      });
-                    } else {
-                      throw new Error(data.error || 'Failed to delete paper');
+                    if (!response.ok) {
+                      throw new Error('Failed to delete paper');
                     }
+
+                    setPapers(papers.filter(p => p.id !== selectedPaper.id));
+                    setShowDeleteDialog(false);
+                    setSelectedPaper(null);
+                    toast({
+                      title: "Success",
+                      description: "Paper deleted successfully",
+                    });
                   } catch {
                     toast({
                       title: "Error",

@@ -1,46 +1,38 @@
 "use client";
 
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import React, { useEffect, useState } from "react";
 
-export const CardStack = ({
-  items,
-  offset = 4,
-  scaleFactor = 0.06,
-  className,
-}: {
-  items: any[];
-  offset?: number;
-  scaleFactor?: number;
+interface CardStackProps {
+  items: React.ReactNode[];
   className?: string;
-}) => {
+}
+
+export const CardStack = ({ items, className }: CardStackProps) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
     <div className={cn("relative", className)}>
       {items.map((item, idx) => {
-        const isHovered = hoveredIndex === idx;
-
-        const offset = idx * 4;
-        const scale = 1 - idx * scaleFactor;
-
         return (
-          <div
+          <motion.div
             key={idx}
-            className={cn(
-              "absolute inset-0 h-full w-full origin-top transition-all duration-300 ease-out",
-              isHovered && "z-10"
-            )}
+            className="absolute inset-0 h-full w-full"
             style={{
-              transform: isHovered
-                ? "scale(1.1) translateY(-4%)"
-                : `translateY(${offset}%) scale(${scale})`,
+              transformOrigin: "50% 0%",
             }}
-            onMouseEnter={() => setHoveredIndex(idx)}
-            onMouseLeave={() => setHoveredIndex(null)}
+            animate={{
+              rotateZ: idx === hoveredIndex ? "0deg" : `${5 * (idx - items.length / 2)}deg`,
+              y: idx === hoveredIndex ? -20 : 0,
+              scale: 1 - idx * 0.05,
+              zIndex: items.length - idx,
+            }}
+            onHoverStart={() => setHoveredIndex(idx)}
+            onHoverEnd={() => setHoveredIndex(null)}
           >
             {item}
-          </div>
+          </motion.div>
         );
       })}
     </div>

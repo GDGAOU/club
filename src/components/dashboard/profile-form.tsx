@@ -12,6 +12,12 @@ interface ProfileFormProps {
   } | null;
 }
 
+interface FormData {
+  name: string;
+  currentPassword: string;
+  newPassword: string;
+}
+
 export function ProfileForm({ user }: ProfileFormProps) {
   const router = useRouter();
   const [error, setError] = useState("");
@@ -25,10 +31,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get("name"),
-      currentPassword: formData.get("currentPassword"),
-      newPassword: formData.get("newPassword"),
+    const data: FormData = {
+      name: formData.get("name") as string,
+      currentPassword: formData.get("currentPassword") as string,
+      newPassword: formData.get("newPassword") as string,
     };
 
     try {
@@ -47,8 +53,12 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
       setMessage("Profile updated successfully!");
       router.refresh();
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }

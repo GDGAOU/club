@@ -1,285 +1,262 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
-  FunnelIcon, 
-  MagnifyingGlassIcon, 
-  PlusIcon 
-} from "@heroicons/react/24/outline";
-import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
+import { SubmitDiscountModal } from "./submit-discount";
+import { EditDiscountModal } from "./edit-discount";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useEffect, useState } from "react";
-import { DiscountCard, type Discount } from "./discount-card";
 
-// Initial empty discounts array
-const INITIAL_DISCOUNTS: Discount[] = [];
+export function StudentDiscounts() {
+  const [discounts, setDiscounts] = useState([]);
+  const [selectedDiscount, setSelectedDiscount] = useState(null);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-const CATEGORIES = [
-  "All",
-  "Food & Drink",
-  "Shopping",
-  "Entertainment",
-  "Travel",
-  "Education",
-  "Technology",
-  "Health & Beauty",
-  "Other",
-];
-
-const SORT_OPTIONS = [
-  { value: "newest", label: "Newest First" },
-  { value: "oldest", label: "Oldest First" },
-  { value: "expiring", label: "Expiring Soon" },
-  { value: "popular", label: "Most Popular" },
-];
-
-interface StudentDiscountsProps {
-  onAddDiscount?: () => void;
-  newDiscount?: Discount;
-}
-
-export function StudentDiscounts({ onAddDiscount, newDiscount }: StudentDiscountsProps) {
-  const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("newest");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [discounts, setDiscounts] = useState<Discount[]>(INITIAL_DISCOUNTS);
-  const [selectedTab, setSelectedTab] = useState("all");
-
-  // Add new discount when it's received
   useEffect(() => {
-    if (newDiscount) {
-      console.log('Adding new discount:', newDiscount);
-      setDiscounts(prev => [newDiscount, ...prev]);
-    }
-  }, [newDiscount]);
+    fetchDiscounts();
+  }, []);
 
-  const handleDeleteDiscount = (discountId: string) => {
-    console.log('Deleting discount:', discountId);
-    setDiscounts(prev => prev.filter(d => d.id !== discountId));
+  const fetchDiscounts = async () => {
+    try {
+      const response = await fetch("/api/discounts");
+      if (!response.ok) {
+        throw new Error("Failed to fetch discounts");
+      }
+      const data = await response.json();
+      setDiscounts(data);
+    } catch (error) {
+      if (error instanceof Error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch discounts",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
-  // Log whenever discounts state changes
-  useEffect(() => {
-    console.log('Discounts state updated:', discounts);
-  }, [discounts]);
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`/api/discounts/${selectedDiscount.id}`, {
+        method: "DELETE",
+      });
 
-  const isExpiringSoon = (date: string) => {
-    const expiryDate = new Date(date);
-    const now = new Date();
-    const diffTime = expiryDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays <= 7 && diffDays > 0;
+      if (!response.ok) {
+        throw new Error("Failed to delete discount");
+      }
+
+      setDiscounts(discounts.filter((d) => d.id !== selectedDiscount.id));
+      setShowDeleteDialog(false);
+      setSelectedDiscount(null);
+      toast({
+        title: "Success",
+        description: "Discount deleted successfully",
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to delete discount",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
-  const filteredDiscounts = discounts.filter(discount => {
-    // Only show visible discounts unless it's in "My Discounts" tab
-    if (!discount.visible && selectedTab !== "my") {
-      return false;
-    }
-    
-    if (selectedCategory !== "All" && discount.category !== selectedCategory) {
-      return false;
-    }
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      return (
-        discount.title.toLowerCase().includes(query) ||
-        discount.description.toLowerCase().includes(query) ||
-        discount.category.toLowerCase().includes(query) ||
-        discount.store.name.toLowerCase().includes(query)
-      );
-    }
-    return true;
-  }).sort((a, b) => {
-    switch (sortBy) {
-      case "oldest":
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case "expiring":
-        return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime();
-      case "popular":
-        return (b._count?.likes || 0) - (a._count?.likes || 0);
-      default: // newest
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    }
-  });
-
-  const myDiscounts = discounts.filter(discount => !discount.visible || discount.store.id === "user");
-  const savedDiscounts = discounts.filter(discount => discount.visible && discount._count?.likes > 0);
-
-  useEffect(() => {
-    console.log('Filtered Discounts:', filteredDiscounts);
-  }, [filteredDiscounts]);
-
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between gap-4 p-4">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search discounts..."
-              className="w-[300px] pl-9"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SORT_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => {
-              // Open filters dialog
-            }}
-          >
-            <FunnelIcon className="h-4 w-4" />
-            Filters
-          </Button>
-          <Button
-            size="sm"
-            className="gap-2"
-            onClick={onAddDiscount}
-          >
-            <PlusIcon className="h-4 w-4" />
-            Add Discount
-          </Button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold tracking-tight">Student Discounts</h2>
+        <Button onClick={() => setShowSubmitModal(true)}>Add Discount</Button>
       </div>
-      <Separator />
-      <div className="flex-1 p-4">
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="h-full space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <TabsList>
-              <TabsTrigger value="all">All Discounts</TabsTrigger>
-              <TabsTrigger value="my">My Discounts</TabsTrigger>
-              <TabsTrigger value="saved">Saved</TabsTrigger>
-            </TabsList>
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
-              {CATEGORIES.map((category) => (
-                <Badge
-                  key={category}
-                  variant={selectedCategory === category ? "default" : "outline"}
-                  className="cursor-pointer whitespace-nowrap"
-                  onClick={() => setSelectedCategory(category)}
-                >
-                  {category}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          <TabsContent value="all" className="h-[calc(100%-64px)] space-y-8 overflow-y-auto">
-            {filteredDiscounts.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">No discounts found</p>
-              </div>
-            ) : (
-              filteredDiscounts.map((discount) => (
-                <DiscountCard
-                  key={discount.id}
-                  discount={discount}
-                  isExpiringSoon={isExpiringSoon}
-                  onDelete={handleDeleteDiscount}
-                />
-              ))
-            )}
-          </TabsContent>
-          <TabsContent value="my" className="h-[calc(100%-64px)] space-y-8 overflow-y-auto">
-            {myDiscounts.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">You haven't submitted any discounts yet</p>
-              </div>
-            ) : (
-              myDiscounts.map((discount) => (
-                <DiscountCard
-                  key={discount.id}
-                  discount={discount}
-                  isExpiringSoon={isExpiringSoon}
-                  onDelete={handleDeleteDiscount}
-                />
-              ))
-            )}
-          </TabsContent>
-          <TabsContent value="saved" className="h-[calc(100%-64px)] space-y-8 overflow-y-auto">
-            {savedDiscounts.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">No saved discounts</p>
-              </div>
-            ) : (
-              savedDiscounts.map((discount) => (
-                <DiscountCard
-                  key={discount.id}
-                  discount={discount}
-                  isExpiringSoon={isExpiringSoon}
-                  onDelete={handleDeleteDiscount}
-                />
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
-    </div>
-  );
-}
 
-function DiscountCardSkeleton() {
-  return (
-    <div className="rounded-lg border bg-card p-6 space-y-4 animate-pulse">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-3 flex-1">
-          <div className="h-6 w-3/4 bg-muted rounded-md" />
-          <div className="flex gap-2">
-            <div className="h-5 w-20 bg-muted rounded-full" />
-            <div className="h-5 w-24 bg-muted rounded-full" />
-          </div>
-        </div>
-        <div className="h-8 w-8 bg-muted rounded-md" />
-      </div>
-      <div className="h-4 w-full bg-muted rounded-md" />
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-24 bg-muted rounded-md" />
-          <div className="h-6 w-16 bg-muted rounded-md" />
-        </div>
-        <div className="flex gap-2">
-          <div className="h-6 w-20 bg-muted rounded-md" />
-          <div className="h-6 w-24 bg-muted rounded-md" />
-        </div>
-      </div>
-      <Separator />
-      <div className="flex items-center justify-between gap-4 pt-4">
-        <div className="flex items-center gap-4">
-          <div className="h-8 w-16 bg-muted rounded-md" />
-          <div className="h-8 w-16 bg-muted rounded-md" />
-          <div className="h-8 w-16 bg-muted rounded-md" />
-        </div>
-        <div className="h-8 w-24 bg-muted rounded-md" />
-      </div>
+      <Tabs defaultValue="all" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="all">All Discounts</TabsTrigger>
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="expired">Expired</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-4">
+          {discounts.map((discount) => (
+            <Card key={discount.id} className="p-4">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-lg font-semibold">{discount.title}</h3>
+                  <p className="text-sm text-gray-500">{discount.description}</p>
+                  <div className="mt-2 space-x-2">
+                    <Badge>{discount.category}</Badge>
+                    <Badge variant={discount.status === "active" ? "default" : "secondary"}>
+                      {discount.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedDiscount(discount);
+                      setShowEditModal(true);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedDiscount(discount);
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </TabsContent>
+
+        <TabsContent value="active" className="space-y-4">
+          {discounts
+            .filter((d) => d.status === "active")
+            .map((discount) => (
+              <Card key={discount.id} className="p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold">{discount.title}</h3>
+                    <p className="text-sm text-gray-500">{discount.description}</p>
+                    <div className="mt-2 space-x-2">
+                      <Badge>{discount.category}</Badge>
+                      <Badge variant="default">Active</Badge>
+                    </div>
+                  </div>
+                  <div className="space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedDiscount(discount);
+                        setShowEditModal(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedDiscount(discount);
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+        </TabsContent>
+
+        <TabsContent value="expired" className="space-y-4">
+          {discounts
+            .filter((d) => d.status === "expired")
+            .map((discount) => (
+              <Card key={discount.id} className="p-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-semibold">{discount.title}</h3>
+                    <p className="text-sm text-gray-500">{discount.description}</p>
+                    <div className="mt-2 space-x-2">
+                      <Badge>{discount.category}</Badge>
+                      <Badge variant="secondary">Expired</Badge>
+                    </div>
+                  </div>
+                  <div className="space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedDiscount(discount);
+                        setShowEditModal(true);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedDiscount(discount);
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+        </TabsContent>
+      </Tabs>
+
+      <SubmitDiscountModal
+        isOpen={showSubmitModal}
+        onClose={() => setShowSubmitModal(false)}
+        onSubmit={(newDiscount) => {
+          setDiscounts([...discounts, newDiscount]);
+          setShowSubmitModal(false);
+        }}
+      />
+
+      {selectedDiscount && (
+        <EditDiscountModal
+          discount={selectedDiscount}
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setSelectedDiscount(null);
+          }}
+          onUpdate={(updatedDiscount) => {
+            setDiscounts(
+              discounts.map((d) =>
+                d.id === updatedDiscount.id ? updatedDiscount : d
+              )
+            );
+          }}
+        />
+      )}
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the discount.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

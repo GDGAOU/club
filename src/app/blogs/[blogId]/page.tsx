@@ -3,7 +3,6 @@ import { format } from "date-fns"
 import { getServerSession } from "next-auth"
 import {
   CalendarDays,
-  User2,
   BookOpen,
   School,
   GraduationCap,

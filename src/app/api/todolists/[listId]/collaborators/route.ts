@@ -66,7 +66,7 @@ export async function PUT(
     }
 
     const json = await req.json();
-    const { userId, role } = json;
+    const { role } = json;
 
     const collaborator = await prisma.todoListCollaborator.update({
       where: {

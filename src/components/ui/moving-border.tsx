@@ -3,87 +3,84 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 
-export const Button = ({
-  borderRadius = "1.75rem",
-  className,
-  children,
-  as: Component = "button",
-  containerClassName,
-  borderClassName,
-  duration = 2000,
-  ...otherProps
-}: {
-  borderRadius?: string;
-  className?: string;
-  children: React.ReactNode;
-  as?: any;
-  containerClassName?: string;
-  borderClassName?: string;
+interface MovingBorderProps extends React.HTMLAttributes<HTMLDivElement> {
   duration?: number;
-  [key: string]: any;
-}) => {
-  return (
-    <Component
-      className={cn(
-        "bg-transparent relative text-xl h-12 w-40 p-[1px] overflow-hidden ",
-        containerClassName
-      )}
-      style={{
-        borderRadius: borderRadius,
-      }}
-      {...otherProps}
-    >
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(var(--moving-border-angle, 0deg), var(--brand-primary), var(--brand-secondary))",
-          borderRadius: `calc(${borderRadius} * 0.96)`,
-          animation: `gradient-rotate ${duration}ms linear infinite`,
-        }}
-      />
-      <div
-        className={cn(
-          "relative bg-neutral-950 text-white flex items-center justify-center w-full h-full text-sm font-medium",
-          className
-        )}
-        style={{
-          borderRadius: `calc(${borderRadius} * 0.96)`,
-        }}
-      >
-        {children}
-      </div>
-    </Component>
-  );
+  rx?: string;
+  ry?: string;
+  gradient?: string;
+  children?: React.ReactNode;
+  containerClassName?: string;
+}
+
+type PathOptions = {
+  progress: number;
+  size: number;
+  rx: number;
+  ry: number;
 };
 
 export const MovingBorder = ({
   children,
   duration = 2000,
+  rx = "30%",
+  ry = "30%",
+  gradient = "gradient-1",
+  className,
   containerClassName,
-  borderClassName,
-  ...otherProps
-}: {
-  children: React.ReactNode;
-  duration?: number;
-  containerClassName?: string;
-  borderClassName?: string;
-  [key: string]: any;
-}) => {
+  ...props
+}: MovingBorderProps) => {
+  const pathRef = React.useRef<SVGPathElement>(null);
+  const [pathLength, setPathLength] = React.useState<number>(0);
+
+  React.useEffect(() => {
+    if (pathRef.current) {
+      setPathLength(pathRef.current.getTotalLength());
+    }
+  }, []);
+
+  const path = (progress: number, options: PathOptions) => {
+    const { size, rx, ry } = options;
+    const offset = size * progress;
+    const start = `M${offset},0 L${size},0 L${size},${size} L0,${size} L0,0 L${offset},0`;
+    const commands = [
+      `a${rx},${ry},0,0,1,${rx * 2},0`,
+      `a${rx},${ry},0,0,1,-${rx * 2},0`,
+    ];
+    return `${start} ${commands.join(" ")}`;
+  };
+
   return (
-    <div
-      className={cn("relative p-[1px] overflow-hidden", containerClassName)}
-      {...otherProps}
-    >
+    <div className={cn("relative p-[4px] group", containerClassName)}>
       <div
-        className={cn("absolute inset-0", borderClassName)}
-        style={{
-          background:
-            "linear-gradient(var(--moving-border-angle, 0deg), var(--brand-primary), var(--brand-secondary))",
-          animation: `gradient-rotate ${duration}ms linear infinite`,
-        }}
-      />
-      <div className="relative">{children}</div>
+        className={cn(
+          "relative z-10 p-4 bg-background rounded-lg",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </div>
+      <div className="absolute inset-0">
+        <svg
+          className="w-full h-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <path
+            ref={pathRef}
+            d={path(0, { progress: 0, size: 100, rx: 30, ry: 30 })}
+            className={cn(
+              "stroke-2 fill-none [stroke-dasharray:_1_1] stroke-primary",
+              gradient
+            )}
+            style={{
+              strokeDasharray: pathLength,
+              strokeDashoffset: pathLength,
+              animation: `moving-border ${duration}ms infinite linear`,
+            }}
+          />
+        </svg>
+      </div>
     </div>
   );
 };

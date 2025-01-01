@@ -3,25 +3,14 @@
 import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import {
-  IconHome,
-  IconUser,
+  IconLayoutDashboard,
+  IconUsers,
+  IconFileText,
   IconSettings,
   IconLogout,
-  IconChevronDown,
-  IconFolder,
-  IconBook2,
-  IconUsers,
-  IconDiscount2,
-  IconLayoutDashboard,
-  IconCalendar,
-  IconBook,
-  IconMessage,
-  IconShield,
-  IconBell,
-  IconCode,
   IconMenu2,
-  IconNotes,
-  IconFileText
+  IconChevronDown,
+  IconUser,
 } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -51,7 +40,7 @@ export const DashboardSidebar = ({ userName, userRole }: DashboardSidebarProps) 
     {
       label: "Blogs",
       href: "/dashboard/blogs",
-      icon: <IconNotes className="h-5 w-5" />,
+      icon: <IconFileText className="h-5 w-5" />,
     },
     {
       label: "Papers",
@@ -61,12 +50,12 @@ export const DashboardSidebar = ({ userName, userRole }: DashboardSidebarProps) 
     {
       label: "Discounts",
       href: "/dashboard/discounts",
-      icon: <IconDiscount2 className="h-5 w-5" />,
+      icon: <IconFileText className="h-5 w-5" />,
     },
     {
       label: "GPA Calculator",
       href: "/dashboard/gpa-calculator",
-      icon: <IconBook className="h-5 w-5" />,
+      icon: <IconFileText className="h-5 w-5" />,
     },
     ...(isClubMember || isCoAdmin || isAdmin
       ? [
@@ -82,7 +71,7 @@ export const DashboardSidebar = ({ userName, userRole }: DashboardSidebarProps) 
           {
             label: "Admin Panel",
             href: "/dashboard/admin",
-            icon: <IconShield className="h-5 w-5" />,
+            icon: <IconFileText className="h-5 w-5" />,
           },
         ]
       : []),

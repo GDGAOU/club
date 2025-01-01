@@ -56,8 +56,6 @@ interface Blog {
 
 export function BlogsList() {
   const router = useRouter()
-  const [blogs, setBlogs] = useState<Blog[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [selectedBlog, setSelectedBlog] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
@@ -66,15 +64,13 @@ export function BlogsList() {
       const response = await fetch("/api/blogs" + (status ? `?status=${status}` : ""))
       if (!response.ok) throw new Error("Failed to fetch blogs")
       const data = await response.json()
-      setBlogs(data)
+      return data
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to fetch blogs",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -163,40 +159,36 @@ export function BlogsList() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          {blogs.map((blog) => (
+          {fetchBlogs().then((blogs) => blogs.map((blog) => (
             <BlogCard
               key={blog.id}
               blog={blog}
               onPublish={handlePublish}
               onDelete={confirmDelete}
             />
-          ))}
+          )))}
         </TabsContent>
 
         <TabsContent value="drafts" className="space-y-4">
-          {blogs
-            .filter((blog) => blog.status === "draft")
-            .map((blog) => (
-              <BlogCard
-                key={blog.id}
-                blog={blog}
-                onPublish={handlePublish}
-                onDelete={confirmDelete}
-              />
-            ))}
+          {fetchBlogs("draft").then((blogs) => blogs.filter((blog) => blog.status === "draft").map((blog) => (
+            <BlogCard
+              key={blog.id}
+              blog={blog}
+              onPublish={handlePublish}
+              onDelete={confirmDelete}
+            />
+          )))}
         </TabsContent>
 
         <TabsContent value="published" className="space-y-4">
-          {blogs
-            .filter((blog) => blog.status === "published")
-            .map((blog) => (
-              <BlogCard
-                key={blog.id}
-                blog={blog}
-                onPublish={handlePublish}
-                onDelete={confirmDelete}
-              />
-            ))}
+          {fetchBlogs("published").then((blogs) => blogs.filter((blog) => blog.status === "published").map((blog) => (
+            <BlogCard
+              key={blog.id}
+              blog={blog}
+              onPublish={handlePublish}
+              onDelete={confirmDelete}
+            />
+          )))}
         </TabsContent>
       </Tabs>
 

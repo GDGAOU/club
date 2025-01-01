@@ -1,35 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import * as z from "zod";
-import { format, parseISO } from "date-fns";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  TagIcon, 
-  LinkIcon, 
-  CalendarIcon,
-  CurrencyDollarIcon,
-  InformationCircleIcon,
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-} from "@heroicons/react/24/outline";
-import { Loader2Icon } from "lucide-react";
+
+const categories = [
+  { label: "Food & Drink", value: "Food & Drink" },
+  { label: "Shopping", value: "Shopping" },
+  { label: "Entertainment", value: "Entertainment" },
+  { label: "Travel", value: "Travel" },
+  { label: "Education", value: "Education" },
+  { label: "Technology", value: "Technology" },
+  { label: "Health & Beauty", value: "Health & Beauty" },
+  { label: "Other", value: "Other" },
+];
+
+const targetGroups = [
+  "All Students",
+  "University Students",
+  "High School Students",
+  "College Students",
+  "Recent Graduates",
+];
+
+const platforms = ["Online", "In-Store", "Both"];
 
 interface Discount {
   id: string;
@@ -54,52 +51,81 @@ interface Discount {
   };
 }
 
-const formSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
-  description: z.string().min(10, "Description must be at least 10 characters"),
-  code: z.string().min(1, "Discount code is required"),
-  discount: z.string().min(1, "Discount amount is required"),
-  category: z.string().min(1, "Category is required"),
-  customCategory: z.string().optional(),
-  link: z.string().url("Please enter a valid URL"),
-  terms: z.string().optional(),
-  howToUse: z.string().optional(),
-  targetGroup: z.string().min(1, "Target group is required"),
-  platform: z.string().min(1, "Platform is required"),
-  minPurchase: z.number().optional(),
-  maxDiscount: z.number().optional(),
-  expiryDate: z.string().refine((date) => {
-    const selectedDate = parseISO(date);
-    return selectedDate > new Date();
-  }, "Expiry date must be in the future"),
-});
-
-type FormValues = z.infer<typeof formSchema>;
-
 interface SubmitDiscountProps {
   onSuccess?: (discount: Discount) => void;
 }
 
-const categories = [
-  { label: "Food & Drink", value: "Food & Drink" },
-  { label: "Shopping", value: "Shopping" },
-  { label: "Entertainment", value: "Entertainment" },
-  { label: "Travel", value: "Travel" },
-  { label: "Education", value: "Education" },
-  { label: "Technology", value: "Technology" },
-  { label: "Health & Beauty", value: "Health & Beauty" },
-  { label: "Other", value: "Other" },
-];
+const formSchema = {
+  title: "",
+  description: "",
+  code: "",
+  discount: "",
+  category: "",
+  customCategory: "",
+  link: "",
+  terms: "",
+  howToUse: "",
+  targetGroup: "All Students",
+  platform: "Online",
+  minPurchase: 0,
+  maxDiscount: 0,
+  expiryDate: "",
+};
 
-const targetGroups = [
-  "All Students",
-  "University Students",
-  "High School Students",
-  "College Students",
-  "Recent Graduates",
-];
+const handleSubmit = async (e: React.FormEvent, formData: any, onSuccess: any, setIsSubmitting: any, toast: any) => {
+  e.preventDefault();
+  setIsSubmitting(true);
 
-const platforms = ["Online", "In-Store", "Both"];
+  try {
+    const newDiscount: Discount = {
+      id: String(Date.now()), // Generate a unique ID
+      title: formData.title,
+      description: formData.description,
+      code: formData.code,
+      link: formData.link,
+      category: formData.category === "Other" ? formData.customCategory : formData.category,
+      discount: formData.discount,
+      status: "pending", // Set initial status as pending
+      expiryDate: formData.expiryDate,
+      createdAt: new Date().toISOString(),
+      visible: false, // Hide until approved
+      store: {
+        id: "user",
+        name: "User Submitted",
+      },
+      _count: {
+        likes: 0,
+        comments: 0,
+        shares: 0,
+      },
+    };
+
+    if (onSuccess) {
+      onSuccess(newDiscount);
+    }
+
+    toast({
+      title: "Success!",
+      description: "Your discount has been submitted and is pending review. We'll notify you once it's approved.",
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to submit discount",
+        variant: "destructive",
+      });
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
 export function SubmitDiscount({ onSuccess }: SubmitDiscountProps) {
   const { toast } = useToast();
@@ -107,108 +133,10 @@ export function SubmitDiscount({ onSuccess }: SubmitDiscountProps) {
   const [currentTab, setCurrentTab] = useState("basic");
   const [hasMinPurchase, setHasMinPurchase] = useState(false);
   const [hasMaxDiscount, setHasMaxDiscount] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    code: "",
-    discount: "",
-    category: "",
-    customCategory: "",
-    link: "",
-    terms: "",
-    howToUse: "",
-    targetGroup: "All Students",
-    platform: "Online",
-    minPurchase: 0,
-    maxDiscount: 0,
-    expiryDate: format(new Date(), "yyyy-MM-dd"),
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      setIsSubmitting(true);
-      const validatedData = formSchema.parse(formData);
-      console.log('Validated form data:', validatedData);
-      
-      const newDiscount: Discount = {
-        id: String(Date.now()), // Generate a unique ID
-        title: validatedData.title,
-        description: validatedData.description,
-        code: validatedData.code,
-        link: validatedData.link,
-        category: validatedData.category === "Other" ? validatedData.customCategory! : validatedData.category,
-        discount: validatedData.discount,
-        status: "pending", // Set initial status as pending
-        expiryDate: validatedData.expiryDate,
-        createdAt: new Date().toISOString(),
-        visible: false, // Hide until approved
-        store: {
-          id: "user",
-          name: "User Submitted",
-        },
-        _count: {
-          likes: 0,
-          comments: 0,
-          shares: 0,
-        },
-      };
-      
-      console.log('Created new discount:', newDiscount);
-
-      if (onSuccess) {
-        console.log('Calling onSuccess with discount:', newDiscount);
-        onSuccess(newDiscount);
-      }
-
-      toast({
-        title: "Success!",
-        description: "Your discount has been submitted and is pending review. We'll notify you once it's approved.",
-      });
-
-      setFormData({
-        title: "",
-        description: "",
-        code: "",
-        discount: "",
-        category: "",
-        customCategory: "",
-        link: "",
-        terms: "",
-        howToUse: "",
-        targetGroup: "All Students",
-        platform: "Online",
-        minPurchase: 0,
-        maxDiscount: 0,
-        expiryDate: format(new Date(), "yyyy-MM-dd"),
-      });
-      setHasMinPurchase(false);
-      setHasMaxDiscount(false);
-      setCurrentTab("basic");
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const errors = error.errors.map((err) => err.message);
-        toast({
-          variant: "destructive",
-          title: "Validation Error",
-          description: errors.join(", "),
-        });
-      } else {
-        console.error("Error submitting discount:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Something went wrong. Please try again.",
-        });
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const [formData, setFormData] = useState(formSchema);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={(e) => handleSubmit(e, formData, onSuccess, setIsSubmitting, toast)} className="space-y-8">
       <Tabs value={currentTab} onValueChange={setCurrentTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="basic">Basic Information</TabsTrigger>
@@ -291,7 +219,7 @@ export function SubmitDiscount({ onSuccess }: SubmitDiscountProps) {
                 type="date"
                 value={formData.expiryDate}
                 onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
-                min={format(new Date(), "yyyy-MM-dd")}
+                min={new Date().toISOString().split('T')[0]}
               />
             </div>
           </div>
@@ -453,22 +381,7 @@ export function SubmitDiscount({ onSuccess }: SubmitDiscountProps) {
           type="button"
           variant="outline"
           onClick={() => {
-            setFormData({
-              title: "",
-              description: "",
-              code: "",
-              discount: "",
-              category: "",
-              customCategory: "",
-              link: "",
-              terms: "",
-              howToUse: "",
-              targetGroup: "All Students",
-              platform: "Online",
-              minPurchase: 0,
-              maxDiscount: 0,
-              expiryDate: format(new Date(), "yyyy-MM-dd"),
-            });
+            setFormData(formSchema);
             setHasMinPurchase(false);
             setHasMaxDiscount(false);
             setCurrentTab("basic");

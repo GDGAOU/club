@@ -31,10 +31,22 @@ const CATEGORIES = [
   "Entertainment"
 ];
 
+interface DiscountFormValues {
+  title: string;
+  description: string;
+  code: string;
+  discount: string;
+  category: string;
+  expiryDate: string;
+  link: string;
+  imageUrl?: string;
+  status: string;
+}
+
 export function EditDiscountModal({ discount, isOpen, onClose, onUpdate }: EditDiscountProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<DiscountFormValues>({
     title: discount.title,
     description: discount.description,
     code: discount.code,
@@ -91,13 +103,21 @@ export function EditDiscountModal({ discount, isOpen, onClose, onUpdate }: EditD
 
       onUpdate(data.data);
       onClose();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error updating discount:", error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update discount",
-        variant: "destructive",
-      });
+      if (error instanceof Error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update discount",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
