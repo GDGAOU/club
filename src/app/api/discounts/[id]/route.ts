@@ -3,11 +3,9 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
-type RouteParams = { params: { id: string } };
-
 export async function DELETE(
   req: NextRequest,
-  { params }: RouteParams
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -55,7 +53,7 @@ export async function DELETE(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: RouteParams
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
