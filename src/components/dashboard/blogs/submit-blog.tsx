@@ -61,7 +61,7 @@ interface BlogFormProps {
   isEditing?: boolean
 }
 
-export default function SubmitBlogForm({ initialData, isEditing = false }: BlogFormProps) {
+export function SubmitBlogForm({ initialData, isEditing = false }: BlogFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [dragActive, setDragActive] = useState(false)

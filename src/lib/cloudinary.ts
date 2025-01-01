@@ -1,16 +1,9 @@
-import { v2 as cloudinary } from "cloudinary";
+import { v2 as cloudinary } from 'cloudinary';
 
-if (!process.env.CLOUDINARY_URL) {
-  cloudinary.config({
-    cloud_name: "dvpqtvunr",
-    api_key: "528382933568121",
-    api_secret: "FW5kwVe1aYydXAK-Fu-zr4fDkVA",
-  });
-} else {
-  // If CLOUDINARY_URL is set, it will automatically configure cloudinary
-  cloudinary.config({
-    secure: true
-  });
-}
+cloudinary.config({
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export { cloudinary };

@@ -1,8 +1,10 @@
+"use client"
+
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 
 import { authOptions } from "@/lib/auth"
-import SubmitBlogForm from "@/components/dashboard/blogs/submit-blog"
+import { SubmitBlogForm } from "@/components/dashboard/blogs/submit-blog"
 
 export default async function NewBlogPage() {
   const session = await getServerSession(authOptions)

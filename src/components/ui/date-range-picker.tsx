@@ -19,7 +19,7 @@ interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   onDateChange: (date: DateRange | undefined) => void
 }
 
-export function DateRangePicker({
+export function DatePickerWithRange({
   date,
   onDateChange,
   className,
