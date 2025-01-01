@@ -15,45 +15,37 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth });
 
-type DownloadResponse = {
-  downloadUrl: string;
-  message?: string;
-}
-
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
-  const { id } = req.query;
-  if (!id || typeof id !== 'string') {
-    return NextResponse.json({ downloadUrl: '', message: "Paper ID is required" }, { status: 400 });
-  }
-
   try {
-    const session = await getServerSession(authOptions);
+    const { id } = context.params;
+
     const paper = await prisma.paper.findUnique({
       where: { id },
+      include: { user: true },
     });
 
     if (!paper) {
-      return NextResponse.json({ downloadUrl: '', message: "Paper not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Paper not found" },
+        { status: 404 }
+      );
     }
 
     // If paper is private, check if user is authenticated and is the owner
-    if (!paper.isPublic && (!session?.user?.email || session.user.email !== paper.uploadedBy)) {
-      return NextResponse.json({ downloadUrl: '', message: "Unauthorized" }, { status: 401 });
+    if (!paper.visible) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.email || session.user.email !== paper.user?.email) {
+        return NextResponse.json(
+          { error: "Unauthorized" },
+          { status: 401 }
+        );
+      }
     }
 
     try {
-      // Update download count first
-      const updatedPaper = await prisma.paper.update({
-        where: { id },
-        data: { downloads: { increment: 1 } },
-      });
-
-      console.log('Updated download count:', updatedPaper.downloads);
-
-      // Get the file from Google Drive
       const response = await drive.files.get(
         {
           fileId: paper.fileId,
@@ -66,29 +58,29 @@ export async function GET(
 
       const file = response.data;
       if (!file.webContentLink) {
-        return NextResponse.json({ 
-          downloadUrl: '', 
-          message: "Download link not available" 
-        }, { status: 404 });
+        return NextResponse.json(
+          { error: "Download link not available" },
+          { status: 404 }
+        );
       }
 
-      return NextResponse.json({ 
-        downloadUrl: file.webContentLink,
-        message: "Download link generated successfully" 
-      }, { status: 200 });
+      return NextResponse.json({
+        url: file.webContentLink,
+        title: paper.title,
+      });
 
     } catch (error) {
       console.error('Error downloading file from Google Drive:', error);
-      if (error instanceof Error) {
-        return NextResponse.json({ downloadUrl: '', message: error.message }, { status: 404 });
-      }
-      return NextResponse.json({ downloadUrl: '', message: "An unknown error occurred" }, { status: 404 });
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "Failed to generate download link" },
+        { status: 404 }
+      );
     }
   } catch (error) {
     console.error('Error downloading paper:', error);
-    if (error instanceof Error) {
-      return NextResponse.json({ downloadUrl: '', message: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ downloadUrl: '', message: "An unknown error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 500 }
+    );
   }
 }
